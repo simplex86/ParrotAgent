@@ -27,7 +27,7 @@ namespace ParrotAgent.TUI
         public async Task RunAsync()
         {
             var entry = new AgentEntry(cancellationTokenSource.Token);
-            var sink = await entry.RunAsync();
+            var sink = await entry.Run();
 
             sink.Output.Add(OnSinkOutputHandler);
 

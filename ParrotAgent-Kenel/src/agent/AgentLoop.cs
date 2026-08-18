@@ -1,7 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -13,11 +11,13 @@ namespace ParrotAgent.Kenel
     internal sealed class AgentLoop
     {
         private IChatProvider chatProvider;
+        private SinkChannel outputChannel;
         private CancellationToken cancellationToken;
 
-        public AgentLoop(IChatProvider chatProvider, CancellationToken cancellationToken)
+        public AgentLoop(IChatProvider chatProvider, SinkChannel outputChannel, CancellationToken cancellationToken)
         {
             this.chatProvider = chatProvider;
+            this.outputChannel = outputChannel;
             this.cancellationToken = cancellationToken;
         }
 
@@ -25,14 +25,14 @@ namespace ParrotAgent.Kenel
         /// 
         /// </summary>
         /// <returns></returns>
-        public async Task RunAsync(List<string> messages)
+        public async Task Run(List<IMessage> messages)
         {
             while (!cancellationToken.IsCancellationRequested)
             {
                 try
                 {
-                    var response = await chatProvider.ChatAsync(messages[^1], cancellationToken);
-                    Console.WriteLine(response);
+                    var response = await chatProvider.Chat(messages, cancellationToken);
+                    outputChannel.Write(response);
                 }
                 catch (Exception ex)
                 {

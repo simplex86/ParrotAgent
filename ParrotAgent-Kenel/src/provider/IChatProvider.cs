@@ -15,6 +15,6 @@ namespace ParrotAgent.Kenel
         /// <summary>
         /// 非流式聊天：给定用户输入，返回完整回复。
         /// </summary>
-        Task<string> ChatAsync(string userInput, CancellationToken cancellationToken);
+        Task<string> Chat(IReadOnlyList<IMessage> messages, CancellationToken cancellationToken);
     }
 }

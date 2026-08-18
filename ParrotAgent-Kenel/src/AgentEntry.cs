@@ -16,10 +16,6 @@ namespace ParrotAgent.Kenel
         /// <summary>
         /// 
         /// </summary>
-        private Sink sink;
-        /// <summary>
-        /// 
-        /// </summary>
         private CancellationToken cancellationToken;
 
         /// <summary>
@@ -29,7 +25,6 @@ namespace ParrotAgent.Kenel
         public AgentEntry(CancellationToken cancellationToken)
         {
             this.chatProvider = new MockProvider();
-            this.sink = new Sink();
             this.cancellationToken = cancellationToken;
         }
 
@@ -37,10 +32,22 @@ namespace ParrotAgent.Kenel
         /// 启动
         /// </summary>
         /// <returns>返回sink对象</returns>
-        public async Task<Sink> RunAsync()
+        public async Task<Sink> Run()
         {
-            var agent = new Agent(chatProvider, sink, cancellationToken);
-            await agent.RunAsync();
+            var sink = new Sink();
+
+            try
+            {
+                var config = AgentConfigLoader.Load();
+                chatProvider = ProviderFactory.CreateActive(config);
+
+                var agent = new Agent(chatProvider, sink, cancellationToken);
+                await agent.Run();
+            }
+            catch (Exception ex)
+            {
+
+            }
 
             return sink;
         }
