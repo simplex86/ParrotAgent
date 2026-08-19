@@ -33,8 +33,10 @@ namespace ParrotAgent.Kenel
         /// <returns></returns>
         public async Task Run()
         {
-            sink.Input.Add(OnSinkInputHandler);
-            sink.Output.Add(OnSinkOutputHandler);
+            sink.Input.OnChanged.Register(OnSinkInputChangedHandler);
+
+            sink.Output.OnChanged.Unregister(OnSinkOutputChangedHandler);
+            sink.Output.OnCompleted.Unregister(OnSinkOutputCompletedHandler);
 
             await Task.CompletedTask;
         }
@@ -44,10 +46,10 @@ namespace ParrotAgent.Kenel
         /// </summary>
         /// <param name="input"></param>
         /// <returns></returns>
-        private async Task OnSinkInputHandler(string input)
+        private void OnSinkInputChangedHandler(string input)
         {
             AddUser(input);
-            await agentLoop.Run(history);
+            agentLoop.Run(history).Wait();
         }
 
         /// <summary>
@@ -55,11 +57,19 @@ namespace ParrotAgent.Kenel
         /// </summary>
         /// <param name="input"></param>
         /// <returns></returns>
-        private async Task OnSinkOutputHandler(string output)
+        private void OnSinkOutputChangedHandler(string output)
         {
             reply.Append(output);
-            AddAssistant(reply.ToString());
+        }
 
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="input"></param>
+        /// <returns></returns>
+        private void OnSinkOutputCompletedHandler(string output)
+        {
+            AddAssistant(reply.ToString());
             reply.Clear();
         }
 

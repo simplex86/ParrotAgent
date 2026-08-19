@@ -1,11 +1,14 @@
 ﻿// See https://aka.ms/new-console-template for more information
 
+using System;
 using System.Text;
 using ParrotAgent.NUI;
 
+Console.Clear();
+
 Console.OutputEncoding = Encoding.UTF8;
-
-var app = new App();
-await app.Run();
-
+{
+    var app = new App();
+    await app.Run();
+}
 Console.ResetColor();

@@ -31,8 +31,13 @@ namespace ParrotAgent.Kenel
             {
                 try
                 {
-                    var response = await chatProvider.Chat(messages, cancellationToken);
-                    outputChannel.Write(response);
+                    //var response = await chatProvider.Chat(messages, cancellationToken);
+                    //outputChannel.Write(response);
+                    await foreach (var token in chatProvider.ChatStream(messages, cancellationToken))
+                    {
+                        outputChannel.Write(token);
+                    }
+                    outputChannel.Complete();
                 }
                 catch (Exception ex)
                 {

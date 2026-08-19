@@ -1,5 +1,5 @@
 ﻿using System;
-using System.Linq;
+using System.Collections.Generic;
 using System.Net.Http;
 using System.Net.Http.Headers;
 using System.Net.ServerSentEvents;
@@ -49,10 +49,10 @@ namespace ParrotAgent.Kenel
         /// <param name="requestUri"></param>
         /// <param name="cancellationToken"></param>
         /// <returns></returns>
-        public async Task<string> SendAsync(string text, string requestUri, CancellationToken cancellationToken)
+        public async Task<HttpResponseMessage> Send(string text, string requestUri, CancellationToken cancellationToken)
         {
-            using var response = await RequestAsync(text, requestUri, cancellationToken);
-            return await response.Content.ReadAsStringAsync(cancellationToken); ;
+            cancellationToken.ThrowIfCancellationRequested();
+            return await RequestAsync(text, requestUri, cancellationToken);
         }
 
         /// <summary>

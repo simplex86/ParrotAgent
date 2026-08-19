@@ -1,14 +1,17 @@
-﻿namespace ParrotAgent.NUI
+﻿using System.Collections.Generic;
+using System.Threading.Tasks;
+
+namespace ParrotAgent.NUI
 {
     /// <summary>
     /// 
     /// </summary>
     internal class StateMachine
     {
-        private Dictionary<string, IState> states = new Dictionary<string, IState>();
-        private IState? current = null;
+        private Dictionary<string, IStateNode> states = new Dictionary<string, IStateNode>();
+        private IStateNode? current = null;
 
-        public void Add(string name, IState state)
+        public void Add(string name, IStateNode state)
         {
             if (!states.ContainsKey(name))
             {

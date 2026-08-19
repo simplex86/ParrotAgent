@@ -1,7 +1,9 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Net.Http.Headers;
+using System.Runtime.CompilerServices;
 using System.Text.Json;
 using System.Threading;
 using System.Threading.Tasks;
@@ -14,9 +16,19 @@ namespace ParrotAgent.Kenel
     /// </summary>
     internal class OpenAIProvider : IChatProvider
     {
+        /// <summary>
+        /// 
+        /// </summary>
         private ProviderConfig config;
+        /// <summary>
+        /// 
+        /// </summary>
         private StreamableHttpClient http;
 
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="config"></param>
         public OpenAIProvider(ProviderConfig config)
         {
             this.config = config;
@@ -36,9 +48,10 @@ namespace ParrotAgent.Kenel
             try
             {
                 var request = BuildRequestBody(messages, false);
-                var response = await http.SendAsync(request, "chat/completions", cancellationToken);
+                using var response = await http.Send(request, "chat/completions", cancellationToken);
 
-                using var doc = JsonDocument.Parse(response);
+                var content = await response.Content.ReadAsStringAsync(cancellationToken);
+                using var doc = JsonDocument.Parse(content);
 
                 return doc.RootElement.GetProperty("choices")[0]
                                       .GetProperty("message")
@@ -51,6 +64,49 @@ namespace ParrotAgent.Kenel
             }
 
             return string.Empty;
+        }
+
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="messages"></param>
+        /// <param name="cancellationToken"></param>
+        /// <returns></returns>
+        public async IAsyncEnumerable<string> ChatStream(IReadOnlyList<IMessage> messages, [EnumeratorCancellation] CancellationToken cancellationToken)
+        {
+            cancellationToken.ThrowIfCancellationRequested();
+
+            var request = BuildRequestBody(messages, true);
+            using var response = await http.Send(request, "chat/completions", cancellationToken);
+
+            using var stream = await response.Content.ReadAsStreamAsync(cancellationToken);
+            using var reader = new StreamReader(stream);
+
+            while (!cancellationToken.IsCancellationRequested)
+            {
+                var line = await reader.ReadLineAsync(cancellationToken);
+                if (line is null) break;  // 流结束
+
+                // SSE 协议：空行是事件分隔符，跳过
+                if (string.IsNullOrEmpty(line)) continue;
+                // 其他前缀（event: / id: / 注释 :...）本迭代不处理，跳过
+                if (!line.StartsWith("data: ")) continue;
+
+                var data = line["data: ".Length..];
+                if (data == "[DONE]") break;  // OpenAI 流终止标记
+
+                // 解析 JSON，提取 choices[0].delta.content
+                using var doc = JsonDocument.Parse(data);
+                var choices = doc.RootElement.GetProperty("choices");
+                if (choices.GetArrayLength() == 0) continue;
+
+                var delta = choices[0].GetProperty("delta");
+                if (delta.TryGetProperty("content", out var content))
+                {
+                    var text = content.GetString();
+                    if (!string.IsNullOrEmpty(text)) yield return text;
+                }
+            }
         }
 
         /// <summary>

@@ -4,7 +4,7 @@
     <OutputType>Exe</OutputType>
     <TargetFramework>net8.0</TargetFramework>
     <RootNamespace>ParrotAgent.NUI</RootNamespace>
-    <ImplicitUsings>enable</ImplicitUsings>
+    <ImplicitUsings>disable</ImplicitUsings>
     <Nullable>enable</Nullable>
 	<!-- dotnet run 时工作目录设为项目目录，使 .parrotcode.yaml 能被三级发现命中 -->
 	<RunWorkingDirectory>$(MSBuildProjectDirectory)</RunWorkingDirectory>

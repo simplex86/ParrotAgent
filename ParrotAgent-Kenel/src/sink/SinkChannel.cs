@@ -1,20 +1,104 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Text;
 using System.Threading.Tasks;
 
 namespace ParrotAgent.Kenel
 {
-    /// <summary>
-    /// 
-    /// </summary>
-    public class SinkChannel
+    public class SinkEvent
     {
         /// <summary>
         /// 
         /// </summary>
-        private List<Func<string, Task>> actions = new List<Func<string, Task>>();
+        private List<Action<string>> actions = new List<Action<string>>();
+
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="action"></param>
+        public void Register(Action<string> action)
+        {
+            actions.Add(action);
+        }
+
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="text"></param>
+        /// <returns></returns>
+        public void Invoke()
+        {
+            foreach (var action in actions)
+            {
+                action?.Invoke(null);
+            }
+        }
+
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="text"></param>
+        /// <returns></returns>
+        public void Invoke(string text)
+        {
+            foreach (var action in actions)
+            {
+                action?.Invoke(text);
+            }
+        }
+
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="action"></param>
+        public void Unregister(Action<string> action)
+        {
+            actions.Remove(action);
+        }
+    }
+
+    /// <summary>
+    /// 
+    /// </summary>
+    public interface ISinkChannel
+    {
+        /// <summary>
+        /// 
+        /// </summary>
+        SinkEvent OnChanged { get; }
+
+        /// <summary>
+        /// 
+        /// </summary>
+        SinkEvent OnCompleted { get; }
+
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="text"></param>
+        /// <returns></returns>
+        void Write(string text);
+
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <returns></returns>
+        void Complete();
+    }
+
+    /// <summary>
+    /// 
+    /// </summary>
+    public class SinkChannel : ISinkChannel
+    {
+        /// <summary>
+        /// 
+        /// </summary>
+        public SinkEvent OnChanged { get; } = new SinkEvent();
+
+        /// <summary>
+        /// 
+        /// </summary>
+        public SinkEvent OnCompleted { get; } = new SinkEvent();
 
         /// <summary>
         /// 
@@ -30,34 +114,16 @@ namespace ParrotAgent.Kenel
         /// <param name="text"></param>
         public void Write(string text)
         {
-            foreach (var action in actions)
-            {
-                action.Invoke(text);
-            }
+            OnChanged.Invoke(text);
         }
 
         /// <summary>
         /// 
         /// </summary>
-        /// <param name="action"></param>
-        public void Add(Func<string, Task> action)
+        /// <returns></returns>
+        public void Complete()
         {
-            if (action != null)
-            {
-                actions.Add(action);
-            }
-        }
-
-        /// <summary>
-        /// 
-        /// </summary>
-        /// <param name="action"></param>
-        public void Remove(Func<string, Task> action)
-        {
-            if (action != null)
-            {
-                actions.Remove(action);
-            }
+            OnCompleted?.Invoke();
         }
     }
 }

@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Text;
+using System.Runtime.CompilerServices;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -16,5 +15,13 @@ namespace ParrotAgent.Kenel
         /// 非流式聊天：给定用户输入，返回完整回复。
         /// </summary>
         Task<string> Chat(IReadOnlyList<IMessage> messages, CancellationToken cancellationToken);
+
+        /// <summary>
+        /// 流式聊天
+        /// </summary>
+        /// <param name="messages"></param>
+        /// <param name="cancellationToken"></param>
+        /// <returns></returns>
+        IAsyncEnumerable<string> ChatStream(IReadOnlyList<IMessage> messages, [EnumeratorCancellation] CancellationToken cancellationToken);
     }
 }

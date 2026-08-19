@@ -1,4 +1,6 @@
 ﻿using System;
+using System.Threading;
+using System.Threading.Tasks;
 using ParrotAgent.Kenel;
 
 namespace ParrotAgent.NUI
@@ -28,8 +30,9 @@ namespace ParrotAgent.NUI
             var entry = new AgentEntry(cancellationTokenSource.Token);
             var sink = await entry.Run();
 
-            machine.Add("pending", new PendingState(machine, sink.Input));
-            machine.Add("thinking", new ThinkingState(machine, sink.Output));
+            machine.Add("pending", new PendingStateNode(machine, sink.Input));
+            machine.Add("thinking", new ThinkingStateNode(machine, sink.Output));
+            machine.Add("closing", new ClosingStateNode());
 
             await machine.Run("pending");
         }
