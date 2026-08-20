@@ -41,8 +41,13 @@ namespace ParrotAgent.Kenel
         /// </summary>
         string Content { get; }
         /// <summary>
-        /// 
+        /// assistant 消息携带的工具调用（仅 Role=Assistant 时可能非空）
         /// </summary>
         IReadOnlyList<ToolCall>? ToolCalls { get; init; }
+        /// <summary>
+        /// tool 角色消息关联的 tool_call_id
+        /// OpenAI 要求 tool 消息必须带 tool_call_id 关联到触发它的 assistant tool_call
+        /// </summary>
+        string? ToolCallId { get; init; }
     }
 }

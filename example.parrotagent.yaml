@@ -1,4 +1,5 @@
-# ParrotAgent.Net 配置示例。复制为 .parrotagent.yaml 后按需修改。
+# ParrotAgent.Net 配置示例。
+# 复制为 .parrotagent.yaml 后按需修改。
 # .parrotagent.yaml 已被 .gitignore 忽略，不会被提交。
 #
 # DeepSeek 为主测试目标（OpenAI 兼容协议）；
@@ -11,7 +12,7 @@ active_provider: deepseek
 providers:
   - name: deepseek
     protocol: openai
-    model: deepseek-chat
+    model: deepseek-v4-flash
     base_url: https://api.deepseek.com/v1
     api_key: ${DEEPSEEK_API_KEY}
 

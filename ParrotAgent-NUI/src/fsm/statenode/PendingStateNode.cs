@@ -7,12 +7,8 @@ namespace ParrotAgent.NUI
     /// <summary>
     /// 
     /// </summary>
-    internal class PendingStateNode : IStateNode
+    internal class PendingStateNode : StateNode
     {
-        /// <summary>
-        /// 
-        /// </summary>
-        private StateMachine machine;
         /// <summary>
         /// 
         /// </summary>
@@ -24,8 +20,8 @@ namespace ParrotAgent.NUI
         /// <param name="machine"></param>
         /// <param name="inputChannel"></param>
         public PendingStateNode(StateMachine machine, SinkChannel inputChannel) 
+            : base(machine)
         { 
-            this.machine = machine;
             this.inputChannel = inputChannel;
         }
 
@@ -33,32 +29,23 @@ namespace ParrotAgent.NUI
         /// 
         /// </summary>
         /// <returns></returns>
-        public async Task Enter()
+        public override async Task Enter()
         {
             Console.ForegroundColor = ConsoleColor.Cyan;
             Console.Write("> ");
             var input = Console.ReadLine();
             Console.ResetColor();
 
-            if (input == null ||
+            if (input == null    ||
                 input == "/exit" ||
                 input == "/quit")
             {
-                await machine.Run("closing");
+                await Machine.Run("close");
                 return;
             }
 
-            await machine.Run("thinking");
+            await Machine.Run("thinking");
             inputChannel.Write(input);
-        }
-
-        /// <summary>
-        /// 
-        /// </summary>
-        /// <returns></returns>
-        public async Task Exit()
-        {
-            await Task.CompletedTask;
         }
     }
 }

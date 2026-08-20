@@ -1,8 +1,6 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.Text;
 using System.Threading;
-using System.Threading.Tasks;
 
 namespace ParrotAgent.Kenel
 {
@@ -11,9 +9,21 @@ namespace ParrotAgent.Kenel
     /// </summary>
     internal class Agent
     {
-        private Sink sink;
-        private AgentLoop agentLoop = null;
-        private List<IMessage> history = new List<IMessage>();
+        /// <summary>
+        /// 
+        /// </summary>
+        private CancellationToken cancellationToken;
+        /// <summary>
+        /// 
+        /// </summary>
+        private AgentLoop agentLoop;
+        /// <summary>
+        /// 
+        /// </summary>
+        private Conversation conversation = new Conversation();
+        /// <summary>
+        /// 
+        /// </summary>
         private StringBuilder reply = new StringBuilder();
 
         /// <summary>
@@ -21,74 +31,74 @@ namespace ParrotAgent.Kenel
         /// </summary>
         /// <param name="chatProvider"></param>
         /// <param name="cancellationToken"></param>
-        public Agent(IChatProvider chatProvider, Sink sink, CancellationToken cancellationToken)
-        {
-            this.sink = sink;
-            this.agentLoop = new AgentLoop(chatProvider, sink.Output, cancellationToken);
-        }
-
-        /// <summary>
-        /// 
-        /// </summary>
-        /// <returns></returns>
-        public async Task Run()
+        public Agent(IProtocolProvider chatProvider, Sink sink, CancellationToken cancellationToken)
         {
             sink.Input.OnChanged.Register(OnSinkInputChangedHandler);
+            sink.Output.OnChanged.Register(OnSinkOutputChangedHandler);
+            sink.Output.OnCompleted.Register(OnSinkOutputCompletedHandler);
 
-            sink.Output.OnChanged.Unregister(OnSinkOutputChangedHandler);
-            sink.Output.OnCompleted.Unregister(OnSinkOutputCompletedHandler);
+            var toolRegistry = new ToolRegistry();
+            {
+                var types = Reflection.FindAll<ITool, ToolAttribute>();
+                foreach (var type in types)
+                {
+                    var tool = Reflection.CreateInstance<ITool>(type);
+                    toolRegistry.Register(tool);
+                }
+            }
 
-            await Task.CompletedTask;
+            this.cancellationToken = cancellationToken;
+            this.agentLoop = new AgentLoop(chatProvider, toolRegistry, sink.Output);
         }
 
         /// <summary>
         /// 
         /// </summary>
-        /// <param name="input"></param>
         /// <returns></returns>
-        private void OnSinkInputChangedHandler(string input)
+        public void Run()
         {
-            AddUser(input);
-            agentLoop.Run(history).Wait();
+            
         }
 
         /// <summary>
         /// 
         /// </summary>
-        /// <param name="input"></param>
+        /// <param name="content"></param>
         /// <returns></returns>
-        private void OnSinkOutputChangedHandler(string output)
+        private void OnSinkInputChangedHandler(string content)
         {
-            reply.Append(output);
+            try
+            {
+                conversation.AddUser(content);
+                agentLoop.Run(conversation.ToProviderMessages(), true, cancellationToken).Wait();
+            }
+            catch (Exception ex)
+            {
+
+            }
         }
 
         /// <summary>
         /// 
         /// </summary>
-        /// <param name="input"></param>
+        /// <param name="content"></param>
         /// <returns></returns>
-        private void OnSinkOutputCompletedHandler(string output)
+        private void OnSinkOutputChangedHandler(string content)
         {
-            AddAssistant(reply.ToString());
+            reply.Append(content);
+        }
+
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="content"></param>
+        /// <returns></returns>
+        private void OnSinkOutputCompletedHandler(string _)
+        {
+            var content = reply.ToString();
             reply.Clear();
-        }
 
-        /// <summary>
-        /// 追加 user 消息。
-        /// </summary>
-        public void AddUser(string content)
-        {
-            ArgumentNullException.ThrowIfNull(content);
-            history.Add(new UserMessage(content));
-        }
-
-        /// <summary>
-        /// 追加 assistant 消息（AI 的完整回复）。
-        /// </summary>
-        public void AddAssistant(string content)
-        {
-            ArgumentNullException.ThrowIfNull(content);
-            history.Add(new AssistantMessage(content));
+            conversation.AddAssistant(content);
         }
     }
 }

@@ -3,10 +3,15 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Net.Http.Headers;
+using System.Net.ServerSentEvents;
 using System.Runtime.CompilerServices;
+using System.Text;
 using System.Text.Json;
+using System.Text.Json.Nodes;
 using System.Threading;
 using System.Threading.Tasks;
+using static System.Net.Mime.MediaTypeNames;
+using static System.Runtime.InteropServices.JavaScript.JSType;
 
 namespace ParrotAgent.Kenel
 {
@@ -14,7 +19,7 @@ namespace ParrotAgent.Kenel
     /// OpenAI 兼容协议 Provider。
     /// 通过 BaseUrl 覆盖 OpenAI 官方与 DeepSeek 等兼容服务。
     /// </summary>
-    internal class OpenAIProvider : IChatProvider
+    internal class OpenAIProvider : IProtocolProvider
     {
         /// <summary>
         /// 
@@ -41,13 +46,19 @@ namespace ParrotAgent.Kenel
         /// <summary>
         /// 非流式聊天：给定用户输入，返回完整回复。
         /// </summary>
-        public async Task<string> Chat(IReadOnlyList<IMessage> messages, CancellationToken cancellationToken)
+        /// <param name="messages"></param>
+        /// <param name="tools"></param>
+        /// <param name="cancellationToken"></param>
+        /// <returns></returns>
+        public async Task<string> Chat(IReadOnlyList<IMessage> messages, 
+                                       JsonElement? tools, 
+                                       CancellationToken cancellationToken)
         {
             cancellationToken.ThrowIfCancellationRequested();
 
             try
             {
-                var request = BuildRequestBody(messages, false);
+                var request = BuildRequestBody(messages, tools, false);
                 using var response = await http.Send(request, "chat/completions", cancellationToken);
 
                 var content = await response.Content.ReadAsStringAsync(cancellationToken);
@@ -67,45 +78,49 @@ namespace ParrotAgent.Kenel
         }
 
         /// <summary>
-        /// 
+        /// 流式聊天
         /// </summary>
         /// <param name="messages"></param>
+        /// <param name="tools"></param>
         /// <param name="cancellationToken"></param>
         /// <returns></returns>
-        public async IAsyncEnumerable<string> ChatStream(IReadOnlyList<IMessage> messages, [EnumeratorCancellation] CancellationToken cancellationToken)
+        public async IAsyncEnumerable<string> ChatStream(IReadOnlyList<IMessage> messages, 
+                                                         JsonElement? tools, 
+                                                         [EnumeratorCancellation] CancellationToken cancellationToken)
         {
             cancellationToken.ThrowIfCancellationRequested();
 
-            var request = BuildRequestBody(messages, true);
+            var request = BuildRequestBody(messages, tools, true);
             using var response = await http.Send(request, "chat/completions", cancellationToken);
 
             using var stream = await response.Content.ReadAsStreamAsync(cancellationToken);
-            using var reader = new StreamReader(stream);
+            var parser = SseParser.Create(stream);
 
-            while (!cancellationToken.IsCancellationRequested)
+            await foreach (var sse in parser.EnumerateAsync(cancellationToken))
             {
-                var line = await reader.ReadLineAsync(cancellationToken);
-                if (line is null) break;  // 流结束
+                var data = sse.Data;
 
-                // SSE 协议：空行是事件分隔符，跳过
-                if (string.IsNullOrEmpty(line)) continue;
-                // 其他前缀（event: / id: / 注释 :...）本迭代不处理，跳过
-                if (!line.StartsWith("data: ")) continue;
+                // 1. 处理流结束标记
+                if (data == "[DONE]")
+                    break;
 
-                var data = line["data: ".Length..];
-                if (data == "[DONE]") break;  // OpenAI 流终止标记
-
-                // 解析 JSON，提取 choices[0].delta.content
-                using var doc = JsonDocument.Parse(data);
-                var choices = doc.RootElement.GetProperty("choices");
-                if (choices.GetArrayLength() == 0) continue;
-
-                var delta = choices[0].GetProperty("delta");
-                if (delta.TryGetProperty("content", out var content))
+                // 2. 反序列化（ framing 由 SseParser 完成，这里只管 JSON）
+                ChatChunk? chunk;
+                try
                 {
-                    var text = content.GetString();
-                    if (!string.IsNullOrEmpty(text)) yield return text;
+                    chunk = JsonSerializer.Deserialize<ChatChunk>(data);
                 }
+                catch (JsonException)
+                {
+                    continue;// 心跳/脏数据帧：跳过，不中断整个流
+                }
+
+                if (chunk?.Choices is null || chunk.Choices.Length == 0) 
+                    continue;
+
+                var content = chunk.Choices[0].Delta?.Content;
+                if (!string.IsNullOrEmpty(content )) 
+                    yield return content ;
             }
         }
 
@@ -113,31 +128,29 @@ namespace ParrotAgent.Kenel
         /// 
         /// </summary>
         /// <param name="messages"></param>
+        /// <param name="tools"></param>
         /// <param name="stream"></param>
         /// <returns></returns>
-        private string BuildRequestBody(IReadOnlyList<IMessage> messages, bool stream)
+        private string BuildRequestBody(IReadOnlyList<IMessage> messages, 
+                                        JsonElement? tools, 
+                                        bool stream)
         {
-            var array = messages.Select(m => new
-            {
-                role = m.Role switch
-                {
-                    MessageRole.System => "system",
-                    MessageRole.User => "user",
-                    MessageRole.Assistant => "assistant",
-                    MessageRole.Tool => "tool",
-                    _ => "user"
-                },
-                content = m.Content
-            });
+            var array = messages.Select(m => m.Wire());
 
-            var request = new
+            var root = new JsonObject
             {
-                model = config.Model,
-                messages = array,
-                stream
+                ["model"] = config.Model,
+                ["messages"] = JsonNode.Parse(JsonSerializer.Serialize(array)),
+                ["stream"] = stream
             };
 
-            return JsonSerializer.Serialize(request);
+            if (tools is { ValueKind: JsonValueKind.Array })
+            {
+                root["tools"] = JsonNode.Parse(tools.Value.GetRawText());
+                root["tool_choice"] = "auto";
+            }
+
+            return root.ToJsonString();
         }
     }
 }

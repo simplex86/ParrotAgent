@@ -11,7 +11,7 @@ namespace ParrotAgent.Kenel
         /// <summary>
         /// 按 active_provider（回退 providers[0]）选中并创建
         /// </summary>
-        public static IChatProvider CreateActive(AgentConfig config)
+        public static IProtocolProvider CreateActive(AgentConfig config)
         {
             ArgumentNullException.ThrowIfNull(config);
             if (config.Providers.Count == 0)
@@ -30,7 +30,7 @@ namespace ParrotAgent.Kenel
         /// <param name="config"></param>
         /// <returns></returns>
         /// <exception cref="ArgumentException"></exception>
-        private static IChatProvider Create(ProviderConfig config)
+        private static IProtocolProvider Create(ProviderConfig config)
         {
             ArgumentNullException.ThrowIfNull(config);
             return config.Protocol switch

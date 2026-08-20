@@ -9,8 +9,21 @@ namespace ParrotAgent.Kenel
     /// <param name="Content"></param>
     internal record ToolMessage(string content) : IMessage
     {
+        /// <summary>
+        /// 
+        /// </summary>
         public MessageRole Role { get; } = MessageRole.Tool;
+        /// <summary>
+        /// 
+        /// </summary>
         public string Content { get; } = content;
+        /// <summary>
+        /// 
+        /// </summary>
         public IReadOnlyList<ToolCall>? ToolCalls { get; init; }
+        /// <summary>
+        /// 
+        /// </summary>
+        public string? ToolCallId { get; init; }
     }
 }

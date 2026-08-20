@@ -7,20 +7,12 @@ namespace ParrotAgent.NUI
     /// <summary>
     /// 
     /// </summary>
-    internal class ThinkingStateNode : IStateNode
+    internal class ThinkingStateNode : StateNode
     {
         /// <summary>
         /// 
         /// </summary>
-        private StateMachine machine;
-        /// <summary>
-        /// 
-        /// </summary>
         private SinkChannel outputChannel;
-        /// <summary>
-        /// 
-        /// </summary>
-        private bool thinking = false;
 
         /// <summary>
         /// 
@@ -28,8 +20,8 @@ namespace ParrotAgent.NUI
         /// <param name="machine"></param>
         /// <param name="outputChannel"></param>
         public ThinkingStateNode(StateMachine machine, SinkChannel outputChannel)
+            : base(machine)
         {
-            this.machine = machine;
             this.outputChannel = outputChannel;
         }
 
@@ -37,7 +29,7 @@ namespace ParrotAgent.NUI
         /// 
         /// </summary>
         /// <returns></returns>
-        public async Task Enter()
+        public override async Task Enter()
         {
             outputChannel.OnChanged.Register(OnOutputChangedHandler);
             outputChannel.OnCompleted.Register(OnOutputCompletedHandler);
@@ -53,7 +45,7 @@ namespace ParrotAgent.NUI
         /// 
         /// </summary>
         /// <returns></returns>
-        public async Task Exit()
+        public override async Task Exit()
         {
             outputChannel.OnChanged.Unregister(OnOutputChangedHandler);
             outputChannel.OnCompleted.Unregister(OnOutputCompletedHandler);
@@ -82,7 +74,7 @@ namespace ParrotAgent.NUI
             Console.WriteLine("Completed!");
             Console.ResetColor();
 
-            machine.Run("pending").Wait();
+            Machine.Run("pending").Wait();
         }
     }
 }

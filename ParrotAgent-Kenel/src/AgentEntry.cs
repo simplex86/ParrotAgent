@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -12,7 +13,11 @@ namespace ParrotAgent.Kenel
         /// <summary>
         /// 
         /// </summary>
-        private IChatProvider chatProvider;
+        private IProtocolProvider chatProvider;
+        /// <summary>
+        /// 
+        /// </summary>
+        private Sink sink;
         /// <summary>
         /// 
         /// </summary>
@@ -22,34 +27,35 @@ namespace ParrotAgent.Kenel
         /// 
         /// </summary>
         /// <param name="cancellationToken"></param>
-        public AgentEntry(CancellationToken cancellationToken)
+        public AgentEntry(Sink sink, CancellationToken cancellationToken)
         {
             this.chatProvider = new MockProvider();
+            this.sink = sink;
             this.cancellationToken = cancellationToken;
         }
 
         /// <summary>
         /// 启动
         /// </summary>
-        /// <returns>返回sink对象</returns>
-        public async Task<Sink> Run()
+        public void Run()
         {
-            var sink = new Sink();
-
             try
             {
                 var config = AgentConfigLoader.Load();
+                {
+                    var provider = config.Providers.FirstOrDefault(p => p.Name == config.ActiveProvider);
+                    Schema.Init(provider);
+                    sink.Output.Write($"Provider: {provider.Name}, Protocol: {provider.Protocol}");
+                }
                 chatProvider = ProviderFactory.CreateActive(config);
 
                 var agent = new Agent(chatProvider, sink, cancellationToken);
-                await agent.Run();
+                agent.Run();
             }
             catch (Exception ex)
             {
 
             }
-
-            return sink;
         }
     }
 }

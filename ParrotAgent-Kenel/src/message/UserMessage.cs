@@ -1,8 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+﻿using System.Collections.Generic;
 
 namespace ParrotAgent.Kenel
 {
@@ -12,8 +8,21 @@ namespace ParrotAgent.Kenel
     /// <param name="Content"></param>
     internal record UserMessage(string content) : IMessage
     {
+        /// <summary>
+        /// 
+        /// </summary>
         public MessageRole Role { get; } = MessageRole.User;
+        /// <summary>
+        /// 
+        /// </summary>
         public string Content { get; } = content;
+        /// <summary>
+        /// 
+        /// </summary>
         public IReadOnlyList<ToolCall>? ToolCalls { get; init; }
+        /// <summary>
+        /// 
+        /// </summary>
+        public string? ToolCallId { get; init; }
     }
 }

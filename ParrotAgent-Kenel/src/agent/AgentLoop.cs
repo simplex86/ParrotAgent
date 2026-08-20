@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Text.Json;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -10,47 +11,81 @@ namespace ParrotAgent.Kenel
     /// </summary>
     internal sealed class AgentLoop
     {
-        private IChatProvider chatProvider;
+        /// <summary>
+        /// 
+        /// </summary>
+        private IProtocolProvider chatProvider;
+        /// <summary>
+        /// 
+        /// </summary>
         private SinkChannel outputChannel;
-        private CancellationToken cancellationToken;
+        /// <summary>
+        /// 
+        /// </summary>
+        private ToolRegistry toolRegistry;
 
-        public AgentLoop(IChatProvider chatProvider, SinkChannel outputChannel, CancellationToken cancellationToken)
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="chatProvider"></param>
+        /// <param name="outputChannel"></param>
+        /// <param name="cancellationToken"></param>
+        public AgentLoop(IProtocolProvider chatProvider, ToolRegistry toolRegistry, SinkChannel outputChannel)
         {
             this.chatProvider = chatProvider;
             this.outputChannel = outputChannel;
-            this.cancellationToken = cancellationToken;
+            this.toolRegistry = toolRegistry;
         }
 
         /// <summary>
         /// 
         /// </summary>
+        /// <param name="messages"></param>
+        /// <param name="stream"></param>
         /// <returns></returns>
-        public async Task Run(List<IMessage> messages)
+        public async Task Run(IReadOnlyList<IMessage> messages, bool stream, CancellationToken cancellationToken)
         {
+            var tools = toolRegistry.Wire();
+
             while (!cancellationToken.IsCancellationRequested)
             {
-                try
-                {
-                    //var response = await chatProvider.Chat(messages, cancellationToken);
-                    //outputChannel.Write(response);
-                    await foreach (var token in chatProvider.ChatStream(messages, cancellationToken))
-                    {
-                        outputChannel.Write(token);
-                    }
-                    outputChannel.Complete();
-                }
-                catch (Exception ex)
-                {
-
-                }
-                finally
-                {
-
-                }
-
-                await Task.CompletedTask;
+                await Chat(messages, tools, stream, cancellationToken);
                 return;
             }
+        }
+
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="messages"></param>
+        /// <returns></returns>
+        private async Task Chat(IReadOnlyList<IMessage> messages, JsonElement? tools, bool stream, CancellationToken cancellationToken)
+        {
+            try
+            {
+                if (stream)
+                {
+                    await foreach (var delta in chatProvider.ChatStream(messages, tools, cancellationToken))
+                    {
+                        outputChannel.Write(delta);
+                    }
+                }
+                else
+                {
+                    var response = await chatProvider.Chat(messages, tools, cancellationToken);
+                    outputChannel.Write(response);
+                }
+            }
+            catch (Exception ex)
+            {
+
+            }
+            finally
+            {
+                outputChannel.Complete();
+            }
+
+            
         }
     }
 }
