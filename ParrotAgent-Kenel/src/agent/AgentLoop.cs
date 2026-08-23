@@ -18,7 +18,7 @@ namespace ParrotAgent.Kenel
         /// <summary>
         /// 
         /// </summary>
-        private SinkChannel outputChannel;
+        private EventSink eventSink;
         /// <summary>
         /// 
         /// </summary>
@@ -28,12 +28,12 @@ namespace ParrotAgent.Kenel
         /// 
         /// </summary>
         /// <param name="chatProvider"></param>
-        /// <param name="outputChannel"></param>
+        /// <param name="eventSink"></param>
         /// <param name="cancellationToken"></param>
-        public AgentLoop(IProtocolProvider chatProvider, ToolRegistry toolRegistry, SinkChannel outputChannel)
+        public AgentLoop(IProtocolProvider chatProvider, ToolRegistry toolRegistry, EventSink eventSink)
         {
             this.chatProvider = chatProvider;
-            this.outputChannel = outputChannel;
+            this.eventSink = eventSink;
             this.toolRegistry = toolRegistry;
         }
 
@@ -67,13 +67,19 @@ namespace ParrotAgent.Kenel
                 {
                     await foreach (var delta in chatProvider.ChatStream(messages, tools, cancellationToken))
                     {
-                        outputChannel.Write(delta);
+                        eventSink.Output.Boardcast(new AssistantDeltaEvent()
+                        {
+                            Delta = delta
+                        });
                     }
                 }
                 else
                 {
                     var response = await chatProvider.Chat(messages, tools, cancellationToken);
-                    outputChannel.Write(response);
+                    eventSink.Output.Boardcast(new AssistantDeltaEvent()
+                    {
+                        Delta = response
+                    });
                 }
             }
             catch (Exception ex)
@@ -82,7 +88,7 @@ namespace ParrotAgent.Kenel
             }
             finally
             {
-                outputChannel.Complete();
+                eventSink.Output.Boardcast(new AssistantCompletedEvent());
             }
 
             

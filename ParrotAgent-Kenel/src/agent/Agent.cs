@@ -31,11 +31,11 @@ namespace ParrotAgent.Kenel
         /// </summary>
         /// <param name="chatProvider"></param>
         /// <param name="cancellationToken"></param>
-        public Agent(IProtocolProvider chatProvider, Sink sink, CancellationToken cancellationToken)
+        public Agent(IProtocolProvider chatProvider, EventSink eventSink, CancellationToken cancellationToken)
         {
-            sink.Input.OnChanged.Register(OnSinkInputChangedHandler);
-            sink.Output.OnChanged.Register(OnSinkOutputChangedHandler);
-            sink.Output.OnCompleted.Register(OnSinkOutputCompletedHandler);
+            eventSink.Input.Register<UserPromptEvent>(OnUserPromptHandler);
+            eventSink.Output.Register<AssistantDeltaEvent>(OnAssistantDeltaHandler);
+            eventSink.Output.Register<AssistantCompletedEvent>(OnAssistantCompletedHandler);
 
             var toolRegistry = new ToolRegistry();
             {
@@ -48,7 +48,7 @@ namespace ParrotAgent.Kenel
             }
 
             this.cancellationToken = cancellationToken;
-            this.agentLoop = new AgentLoop(chatProvider, toolRegistry, sink.Output);
+            this.agentLoop = new AgentLoop(chatProvider, toolRegistry, eventSink);
         }
 
         /// <summary>
@@ -63,13 +63,13 @@ namespace ParrotAgent.Kenel
         /// <summary>
         /// 
         /// </summary>
-        /// <param name="content"></param>
-        /// <returns></returns>
-        private void OnSinkInputChangedHandler(string content)
+        /// <param name="e"></param>
+        private void OnUserPromptHandler(IEvent e)
         {
+            var evt = (UserPromptEvent)e;
             try
             {
-                conversation.AddUser(content);
+                conversation.AddUser(evt.Prompt);
                 agentLoop.Run(conversation.ToProviderMessages(), true, cancellationToken).Wait();
             }
             catch (Exception ex)
@@ -81,20 +81,21 @@ namespace ParrotAgent.Kenel
         /// <summary>
         /// 
         /// </summary>
-        /// <param name="content"></param>
-        /// <returns></returns>
-        private void OnSinkOutputChangedHandler(string content)
+        /// <param name="e"></param>
+        private void OnAssistantDeltaHandler(IEvent e)
         {
-            reply.Append(content);
+            var evt = (AssistantDeltaEvent)e;
+            reply.Append(evt.Delta);
         }
 
         /// <summary>
         /// 
         /// </summary>
-        /// <param name="content"></param>
-        /// <returns></returns>
-        private void OnSinkOutputCompletedHandler(string _)
+        /// <param name="e"></param>
+        private void OnAssistantCompletedHandler(IEvent e)
         {
+            var evt = (AssistantCompletedEvent)e;
+
             var content = reply.ToString();
             reply.Clear();
 

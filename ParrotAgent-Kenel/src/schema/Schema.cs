@@ -21,7 +21,7 @@ namespace ParrotAgent.Kenel
         {
             switch (config.Protocol)
             {
-                case "opanai":
+                case "openai":
                     schema = new OpenAISchema();
                     break;
                 default:

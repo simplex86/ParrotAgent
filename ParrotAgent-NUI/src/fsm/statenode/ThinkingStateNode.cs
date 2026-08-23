@@ -12,17 +12,17 @@ namespace ParrotAgent.NUI
         /// <summary>
         /// 
         /// </summary>
-        private SinkChannel outputChannel;
+        private EventSink eventSink;
 
         /// <summary>
         /// 
         /// </summary>
         /// <param name="machine"></param>
-        /// <param name="outputChannel"></param>
-        public ThinkingStateNode(StateMachine machine, SinkChannel outputChannel)
+        /// <param name="eventSink"></param>
+        public ThinkingStateNode(StateMachine machine, EventSink eventSink)
             : base(machine)
         {
-            this.outputChannel = outputChannel;
+            this.eventSink = eventSink;
         }
 
         /// <summary>
@@ -31,8 +31,8 @@ namespace ParrotAgent.NUI
         /// <returns></returns>
         public override async Task Enter()
         {
-            outputChannel.OnChanged.Register(OnOutputChangedHandler);
-            outputChannel.OnCompleted.Register(OnOutputCompletedHandler);
+            eventSink.Output.Register<AssistantDeltaEvent>(OnAssistantDeltaHandler);
+            eventSink.Output.Register<AssistantCompletedEvent>(OnAssistantCompletedHandler);
 
             Console.ForegroundColor = ConsoleColor.DarkGray;
             Console.WriteLine("Thinking...");
@@ -47,8 +47,8 @@ namespace ParrotAgent.NUI
         /// <returns></returns>
         public override async Task Exit()
         {
-            outputChannel.OnChanged.Unregister(OnOutputChangedHandler);
-            outputChannel.OnCompleted.Unregister(OnOutputCompletedHandler);
+            eventSink.Output.Unregister<AssistantDeltaEvent>(OnAssistantDeltaHandler);
+            eventSink.Output.Unregister<AssistantCompletedEvent>(OnAssistantCompletedHandler);
 
             await Task.CompletedTask;
         }
@@ -58,16 +58,17 @@ namespace ParrotAgent.NUI
         /// </summary>
         /// <param name="text"></param>
         /// <returns></returns>
-        private void OnOutputChangedHandler(string text)
+        private void OnAssistantDeltaHandler(IEvent e)
         {
-            Console.Write(text);
+            var evt = (AssistantDeltaEvent)e;
+            Console.Write(evt.Delta);
         }
 
         /// <summary>
         /// 
         /// </summary>
         /// <returns></returns>
-        private void OnOutputCompletedHandler(string text)
+        private void OnAssistantCompletedHandler(IEvent e)
         {
             Console.WriteLine();
             Console.ForegroundColor = ConsoleColor.DarkGray;

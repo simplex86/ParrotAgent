@@ -12,17 +12,17 @@ namespace ParrotAgent.NUI
         /// <summary>
         /// 
         /// </summary>
-        private SinkChannel inputChannel;
+        private EventSink eventSink;
         
         /// <summary>
         /// 
         /// </summary>
         /// <param name="machine"></param>
         /// <param name="inputChannel"></param>
-        public PendingStateNode(StateMachine machine, SinkChannel inputChannel) 
+        public PendingStateNode(StateMachine machine, EventSink eventSink) 
             : base(machine)
         { 
-            this.inputChannel = inputChannel;
+            this.eventSink = eventSink;
         }
 
         /// <summary>
@@ -45,7 +45,10 @@ namespace ParrotAgent.NUI
             }
 
             await Machine.Run("thinking");
-            inputChannel.Write(input);
+            eventSink.Input.Boardcast(new UserPromptEvent()
+            {
+                Prompt = input
+            });
         }
     }
 }

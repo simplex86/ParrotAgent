@@ -1,10 +1,7 @@
-﻿using ParrotAgent.Kenel;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
+﻿using System;
 using System.Threading;
 using System.Threading.Tasks;
+using ParrotAgent.Kenel;
 
 namespace ParrotAgent.NUI
 {
@@ -16,7 +13,7 @@ namespace ParrotAgent.NUI
         /// <summary>
         /// 
         /// </summary>
-        private Sink sink;
+        private EventSink eventSink;
 
         /// <summary>
         /// 
@@ -28,10 +25,10 @@ namespace ParrotAgent.NUI
         /// </summary>
         /// <param name="machine"></param>
         /// <param name="cancellationTokenSource"></param>
-        public InitStateNode(StateMachine machine, Sink sink, CancellationTokenSource cancellationTokenSource) 
+        public InitStateNode(StateMachine machine, EventSink eventSink, CancellationTokenSource cancellationTokenSource) 
             : base(machine)
         {
-            this.sink = sink;
+            this.eventSink = eventSink;
             this.cancellationTokenSource = cancellationTokenSource;
         }
 
@@ -45,9 +42,9 @@ namespace ParrotAgent.NUI
             Console.WriteLine("Initializing...");
             Console.ResetColor();
 
-            sink.Output.OnChanged.Register(OnOutputChangedHandler);
+            eventSink.Output.Register<AgentBeginEvent>(OnAgentBeignHandler);
 
-            var entry = new AgentEntry(sink, cancellationTokenSource.Token);
+            var entry = new AgentEntry(eventSink, cancellationTokenSource.Token);
             entry.Run();
 
             await Machine.Run("pending");
@@ -59,14 +56,20 @@ namespace ParrotAgent.NUI
         /// <returns></returns>
         public override async Task Exit()
         {
-            sink.Output.OnChanged.Unregister(OnOutputChangedHandler);
+            eventSink.Output.Unregister<AgentBeginEvent>(OnAgentBeignHandler);
             await Task.CompletedTask;
         }
 
-        private void OnOutputChangedHandler(string content)
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="e"></param>
+        private void OnAgentBeignHandler(IEvent e)
         {
+            var evt = (AgentBeginEvent)e;
+
             Console.ForegroundColor = ConsoleColor.DarkGray;
-            Console.WriteLine(content);
+            Console.WriteLine($"Provider = {evt.Provider}, Protocol = {evt.Protocol}");
             Console.ResetColor();
         }
     }

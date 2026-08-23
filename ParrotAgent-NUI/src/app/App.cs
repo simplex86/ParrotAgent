@@ -1,7 +1,7 @@
-﻿using ParrotAgent.Kenel;
-using System;
+﻿using System;
 using System.Threading;
 using System.Threading.Tasks;
+using ParrotAgent.Kenel;
 
 namespace ParrotAgent.NUI
 {
@@ -25,12 +25,12 @@ namespace ParrotAgent.NUI
         public async Task Run()
         {
             var machine = new StateMachine();
-            var sink = new Sink();
+            var eventSink = new EventSink();
             var cancellationTokenSource = new CancellationTokenSource();
 
-            machine.Add("init", new InitStateNode(machine, sink, cancellationTokenSource));
-            machine.Add("pending", new PendingStateNode(machine, sink.Input));
-            machine.Add("thinking", new ThinkingStateNode(machine, sink.Output));
+            machine.Add("init", new InitStateNode(machine, eventSink, cancellationTokenSource));
+            machine.Add("pending", new PendingStateNode(machine, eventSink));
+            machine.Add("thinking", new ThinkingStateNode(machine, eventSink));
             machine.Add("close", new CloseStateNode(machine, cancellationTokenSource));
 
             await machine.Run("init");

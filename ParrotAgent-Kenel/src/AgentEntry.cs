@@ -17,7 +17,7 @@ namespace ParrotAgent.Kenel
         /// <summary>
         /// 
         /// </summary>
-        private Sink sink;
+        private EventSink eventSink;
         /// <summary>
         /// 
         /// </summary>
@@ -27,10 +27,10 @@ namespace ParrotAgent.Kenel
         /// 
         /// </summary>
         /// <param name="cancellationToken"></param>
-        public AgentEntry(Sink sink, CancellationToken cancellationToken)
+        public AgentEntry(EventSink eventSink, CancellationToken cancellationToken)
         {
             this.chatProvider = new MockProvider();
-            this.sink = sink;
+            this.eventSink = eventSink;
             this.cancellationToken = cancellationToken;
         }
 
@@ -45,11 +45,16 @@ namespace ParrotAgent.Kenel
                 {
                     var provider = config.Providers.FirstOrDefault(p => p.Name == config.ActiveProvider);
                     Schema.Init(provider);
-                    sink.Output.Write($"Provider: {provider.Name}, Protocol: {provider.Protocol}");
+
+                    eventSink.Output.Boardcast(new AgentBeginEvent()
+                    {
+                        Provider = provider.Name,
+                        Protocol = provider.Protocol
+                    });
                 }
                 chatProvider = ProviderFactory.CreateActive(config);
 
-                var agent = new Agent(chatProvider, sink, cancellationToken);
+                var agent = new Agent(chatProvider, eventSink, cancellationToken);
                 agent.Run();
             }
             catch (Exception ex)
