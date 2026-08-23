@@ -11,5 +11,5 @@ namespace ParrotAgent.Kenel
     /// LLM 发起的工具调用。
     /// Input 为原始 JSON（保留协议细节，由 Provider 层解释）
     /// </summary>
-    public sealed record ToolCall(string Id, string Name, JsonElement Input);
+    //public sealed record ToolCall(string Id, string Name, JsonElement Input);
 }

@@ -3,6 +3,8 @@ using System.Linq;
 
 namespace ParrotAgent.Kenel
 {
+    using Protocol.OpenAI;
+
     /// <summary>
     /// 
     /// </summary>

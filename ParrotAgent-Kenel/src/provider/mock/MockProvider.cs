@@ -24,20 +24,21 @@ namespace ParrotAgent.Kenel
         }
 
         /// <summary>
-        /// 
+        /// 流式聊天
+        /// 不模拟逐字延迟，一次性产出完整回复。消费方（App）的 await foreach 逻辑与真实 Provider 一致，验证流式管线正确性。
         /// </summary>
         /// <param name="messages"></param>
         /// <param name="cancellationToken"></param>
         /// <returns></returns>
-        public async IAsyncEnumerable<string> ChatStream(IReadOnlyList<IMessage> messages, JsonElement? tools, [EnumeratorCancellation] CancellationToken cancellationToken)
+        public async IAsyncEnumerable<Chunk> ChatStream(IReadOnlyList<IMessage> messages, JsonElement? tools, [EnumeratorCancellation] CancellationToken cancellationToken)
         {
             cancellationToken.ThrowIfCancellationRequested();
 
             var lastUser = messages.LastOrDefault(m => m.Role == MessageRole.User);
             var content = lastUser?.Content ?? string.Empty;
-            // MockProvider 不模拟逐字延迟，一次性产出完整回复。
-            // 消费方（App）的 await foreach 逻辑与真实 Provider 一致，验证流式管线正确性。
-            yield return $"Mock: {content}";
+
+            yield return new Chunk.TextDelta($"Mock: {content}");
+            yield return new Chunk.Done($"done");
 
             await Task.CompletedTask;
         }

@@ -1,57 +1,49 @@
 ﻿using System;
-using System.Text.Json.Serialization;
+using System.Collections.Generic;
 
 namespace ParrotAgent.Kenel
 {
     /// <summary>
-    /// 
+    /// LLM 流式响应的协议中性单元。
+    /// Provider 层把 OpenAI / Anthropic wire format 翻译成 Chunk，AgentLoop 只消费 Chunk，不感知协议细节。
     /// </summary>
-    /// <param name="Role"></param>
-    /// <param name="Content"></param>
-    public record Delta(
-        [property: JsonPropertyName("role")] string? Role,
-        [property: JsonPropertyName("content")] string? Content
-    );
+    internal abstract record Chunk
+    {
+        /// <summary>
+        /// 文本增量
+        /// LLM 产出的回复文本按片段到达，消费方拼接得到完整回复
+        /// </summary>
+        /// <param name="Content"></param>
+        internal record TextDelta(string Content) : Chunk;
+        /// <summary>
+        /// 工具调用增量
+        /// OpenAI 流式中 tool_calls 按 index 分片到达：
+        /// - 首片通常含 Id + Name（arguments 可能空或开始片段）
+        /// - 后续片只含 ArgumentsFragment（arguments JSON 字符串的片段）
+        /// - 同 index 的多片需累积：Id/Name 取首个非空，Arguments 拼接所有片段
+        /// AgentLoop 按 Index 累积，流结束后 Build 成完整 ToolCall。
+        /// </summary>
+        /// <param name="ToolCalls"></param>
+        internal record ToolCallDelta(IReadOnlyList<ToolCall> ToolCalls) : Chunk;
+        /// <summary>
+        /// 流终止标记（OpenAI 的 data: [DONE]）
+        /// 收到此 chunk 后 AgentLoop 停止本轮流式消费，进入 tool_calls 构建阶段
+        /// </summary>
+        /// <param name="Reason"></param>
+        internal record Done(string Reason) : Chunk;
+    }
 
     /// <summary>
-    /// 
-    /// </summary>
-    /// <param name="Index"></param>
-    /// <param name="Delta"></param>
-    /// <param name="FinishReason"></param>
-    public record Choice(
-        [property: JsonPropertyName("index")] int Index,
-        [property: JsonPropertyName("delta")] Delta? Delta,
-        [property: JsonPropertyName("finish_reason")] string? FinishReason
-    );
-
-    /// <summary>
-    /// 
-    /// </summary>
-    /// <param name="PromptTokens"></param>
-    /// <param name="CompletionTokens"></param>
-    /// <param name="TotalTokens"></param>
-    public record Usage(
-        [property: JsonPropertyName("prompt_tokens")] int PromptTokens,
-        [property: JsonPropertyName("completion_tokens")] int CompletionTokens,
-        [property: JsonPropertyName("total_tokens")] int TotalTokens
-    );
-
-    /// <summary>
-    /// 
+    /// 完整的工具调用对象（最终给业务用的）
     /// </summary>
     /// <param name="Id"></param>
-    /// <param name="Object"></param>
-    /// <param name="Created"></param>
-    /// <param name="Model"></param>
-    /// <param name="Choices"></param>
-    /// /// <param name="Usage"></param>
-    public record ChatChunk(
-        [property: JsonPropertyName("id")] string? Id,
-        [property: JsonPropertyName("object")] string? Object,
-        [property: JsonPropertyName("created")] long? Created,
-        [property: JsonPropertyName("model")] string? Model,
-        [property: JsonPropertyName("choices")] Choice[]? Choices,
-        [property: JsonPropertyName("usage")] Usage? Usage
+    /// <param name="Type"></param>
+    /// <param name="FunctionName"></param>
+    /// <param name="FunctionArgumentsJson"></param>
+    public record ToolCall(
+        string Id,
+        string Type,
+        string FunctionName,
+        string FunctionArgumentsJson // 完整 JSON，可直接反序列化为业务参数对象
     );
 }

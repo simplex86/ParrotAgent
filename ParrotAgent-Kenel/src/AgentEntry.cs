@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Linq;
 using System.Threading;
-using System.Threading.Tasks;
 
 namespace ParrotAgent.Kenel
 {
@@ -44,13 +43,13 @@ namespace ParrotAgent.Kenel
                 var config = AgentConfigLoader.Load();
                 {
                     var provider = config.Providers.FirstOrDefault(p => p.Name == config.ActiveProvider);
-                    Schema.Init(provider);
-
                     eventSink.Output.Boardcast(new AgentBeginEvent()
                     {
                         Provider = provider.Name,
                         Protocol = provider.Protocol
                     });
+
+                    Schema.Init(provider);
                 }
                 chatProvider = ProviderFactory.CreateActive(config);
 

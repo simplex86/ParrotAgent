@@ -1,20 +1,18 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.IO;
 using System.Linq;
 using System.Net.Http.Headers;
 using System.Net.ServerSentEvents;
 using System.Runtime.CompilerServices;
-using System.Text;
 using System.Text.Json;
 using System.Text.Json.Nodes;
 using System.Threading;
 using System.Threading.Tasks;
-using static System.Net.Mime.MediaTypeNames;
-using static System.Runtime.InteropServices.JavaScript.JSType;
 
 namespace ParrotAgent.Kenel
 {
+    using Protocol.OpenAI;
+
     /// <summary>
     /// OpenAI 兼容协议 Provider。
     /// 通过 BaseUrl 覆盖 OpenAI 官方与 DeepSeek 等兼容服务。
@@ -29,6 +27,11 @@ namespace ParrotAgent.Kenel
         /// 
         /// </summary>
         private StreamableHttpClient http;
+
+        /// <summary>
+        /// 缓存同一个 tool call 的分片（key 是 ToolCallChunk.Index）
+        /// </summary>
+        private readonly Dictionary<int, ToolCallChunk> toolcalls = new();
 
         /// <summary>
         /// 
@@ -50,8 +53,8 @@ namespace ParrotAgent.Kenel
         /// <param name="tools"></param>
         /// <param name="cancellationToken"></param>
         /// <returns></returns>
-        public async Task<string> Chat(IReadOnlyList<IMessage> messages, 
-                                       JsonElement? tools, 
+        public async Task<string> Chat(IReadOnlyList<IMessage> messages,
+                                       JsonElement? tools,
                                        CancellationToken cancellationToken)
         {
             cancellationToken.ThrowIfCancellationRequested();
@@ -84,11 +87,12 @@ namespace ParrotAgent.Kenel
         /// <param name="tools"></param>
         /// <param name="cancellationToken"></param>
         /// <returns></returns>
-        public async IAsyncEnumerable<string> ChatStream(IReadOnlyList<IMessage> messages, 
-                                                         JsonElement? tools, 
+        public async IAsyncEnumerable<Chunk> ChatStream(IReadOnlyList<IMessage> messages,
+                                                         JsonElement? tools,
                                                          [EnumeratorCancellation] CancellationToken cancellationToken)
         {
             cancellationToken.ThrowIfCancellationRequested();
+            toolcalls.Clear();
 
             var request = BuildRequestBody(messages, tools, true);
             using var response = await http.Send(request, "chat/completions", cancellationToken);
@@ -99,12 +103,12 @@ namespace ParrotAgent.Kenel
             await foreach (var sse in parser.EnumerateAsync(cancellationToken))
             {
                 var data = sse.Data;
-
-                // 1. 处理流结束标记
                 if (data == "[DONE]")
+                {
+                    yield return new Chunk.Done("done");
                     break;
+                }
 
-                // 2. 反序列化（ framing 由 SseParser 完成，这里只管 JSON）
                 ChatChunk? chunk;
                 try
                 {
@@ -112,15 +116,76 @@ namespace ParrotAgent.Kenel
                 }
                 catch (JsonException)
                 {
-                    continue;// 心跳/脏数据帧：跳过，不中断整个流
+                    continue; // 跳过脏数据帧
                 }
 
-                if (chunk?.Choices is null || chunk.Choices.Length == 0) 
-                    continue;
+                if (chunk?.Choices is null || chunk.Choices.Count == 0) continue;
+                var choice = chunk.Choices[0];
+                var delta = choice.Delta;
+                if (delta is null) continue;
 
-                var content = chunk.Choices[0].Delta?.Content;
-                if (!string.IsNullOrEmpty(content )) 
-                    yield return content ;
+                // 1. 处理普通文本内容
+                if (!string.IsNullOrEmpty(delta.Content))
+                {
+                    yield return new Chunk.TextDelta(delta.Content);
+                }
+
+                // 2. 处理 tool_calls 分片
+                if (delta.ToolCalls is not null)
+                {
+                    foreach (var toolcall in delta.ToolCalls)
+                    {
+                        if (!toolcall.Index.HasValue) continue;
+                        var idx = toolcall.Index.Value;
+
+                        // 缓存或更新 tool call 分片
+                        if (toolcalls.TryGetValue(idx, out var existing))
+                        {
+                            // 拼接 arguments（核心！流式返回的 arguments 是分段的）
+                            var existingArgs = existing.Function?.Arguments ?? "";
+                            var newArgs = toolcall.Function?.Arguments ?? "";
+                            var mergedArgs = existingArgs + newArgs;
+
+                            toolcalls[idx] = existing with
+                            {
+                                Id = toolcall.Id ?? existing.Id,
+                                Type = toolcall.Type ?? existing.Type,
+                                Function = existing.Function with
+                                {
+                                    Name = toolcall.Function?.Name ?? existing.Function?.Name,
+                                    Arguments = mergedArgs
+                                }
+                            };
+                        }
+                        else
+                        {
+                            toolcalls[idx] = toolcall;
+                        }
+                    }
+                }
+
+                // 3. 工具调用结束：返回完整的 tool calls
+                if (choice.FinishReason == "tool_calls")
+                {
+                    var completedToolCalls = toolcalls.Values.Where(tc => tc.Id is not null && tc.Function?.Name is not null)
+                                                             .Select(tc => new ToolCall(tc.Id!,
+                                                                                        tc.Type ?? "function",
+                                                                                        tc.Function!.Name!,
+                                                                                        tc.Function.Arguments ?? "{}"))
+                                                             .ToList();
+
+                    if (completedToolCalls.Count > 0)
+                    {
+                        yield return new Chunk.ToolCallDelta(completedToolCalls);
+                    }
+                    toolcalls.Clear();
+                }
+
+                // 4. 普通内容结束
+                if (choice.FinishReason == "stop")
+                {
+                    yield return new Chunk.Done("stop");
+                }
             }
         }
 
@@ -131,8 +196,8 @@ namespace ParrotAgent.Kenel
         /// <param name="tools"></param>
         /// <param name="stream"></param>
         /// <returns></returns>
-        private string BuildRequestBody(IReadOnlyList<IMessage> messages, 
-                                        JsonElement? tools, 
+        private string BuildRequestBody(IReadOnlyList<IMessage> messages,
+                                        JsonElement? tools,
                                         bool stream)
         {
             var array = messages.Select(m => m.Wire());

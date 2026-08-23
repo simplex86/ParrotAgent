@@ -10,7 +10,7 @@ namespace ParrotAgent.Kenel
     /// <summary>
     /// 
     /// </summary>
-    public interface IProtocolProvider
+    internal interface IProtocolProvider
     {
         /// <summary>
         /// 非流式聊天：给定用户输入，返回完整回复。
@@ -23,6 +23,6 @@ namespace ParrotAgent.Kenel
         /// <param name="messages"></param>
         /// <param name="cancellationToken"></param>
         /// <returns></returns>
-        IAsyncEnumerable<string> ChatStream(IReadOnlyList<IMessage> messages, JsonElement? tools, [EnumeratorCancellation] CancellationToken cancellationToken);
+        IAsyncEnumerable<Chunk> ChatStream(IReadOnlyList<IMessage> messages, JsonElement? tools, [EnumeratorCancellation] CancellationToken cancellationToken);
     }
 }

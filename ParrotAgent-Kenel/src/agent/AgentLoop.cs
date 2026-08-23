@@ -65,12 +65,23 @@ namespace ParrotAgent.Kenel
             {
                 if (stream)
                 {
-                    await foreach (var delta in chatProvider.ChatStream(messages, tools, cancellationToken))
+                    await foreach (var chunk in chatProvider.ChatStream(messages, tools, cancellationToken))
                     {
-                        eventSink.Output.Boardcast(new AssistantDeltaEvent()
+                        switch (chunk)
                         {
-                            Delta = delta
-                        });
+                            case Chunk.TextDelta(var delta):
+                                eventSink.Output.Boardcast(new AssistantDeltaEvent()
+                                {
+                                    Delta = delta
+                                });
+                                break;
+                            //case Chunk.ToolCallDelta(var idx, var id, var name, var args):
+                            //    tcAcc.Accumulate(idx, id, name, args);
+                            //    break;
+                            case Chunk.Done:
+                                break;
+                        }
+                        
                     }
                 }
                 else
