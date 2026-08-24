@@ -57,7 +57,7 @@ namespace ParrotAgent.Kenel
 
                     Schema.Init(provider);
                 }
-                chatProvider = ProviderFactory.CreateActive(config);
+                chatProvider = Provider.CreateActive(config);
 
                 var agent = new Agent(chatProvider, toolRegistry, eventSink, cancellationToken);
                 agent.Run();

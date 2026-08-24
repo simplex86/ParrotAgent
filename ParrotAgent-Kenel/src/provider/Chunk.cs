@@ -7,14 +7,14 @@ namespace ParrotAgent.Kenel
     /// LLM 流式响应的协议中性单元。
     /// Provider 层把 OpenAI / Anthropic wire format 翻译成 Chunk，AgentLoop 只消费 Chunk，不感知协议细节。
     /// </summary>
-    internal abstract record Chunk
+    public abstract record Chunk
     {
         /// <summary>
         /// 文本增量
         /// LLM 产出的回复文本按片段到达，消费方拼接得到完整回复
         /// </summary>
         /// <param name="Content"></param>
-        internal record TextDelta(string Content) : Chunk;
+        public record TextDelta(string Content) : Chunk;
         /// <summary>
         /// 工具调用增量
         /// OpenAI 流式中 tool_calls 按 index 分片到达：
@@ -24,13 +24,13 @@ namespace ParrotAgent.Kenel
         /// AgentLoop 按 Index 累积，流结束后 Build 成完整 ToolCall。
         /// </summary>
         /// <param name="Calls"></param>
-        internal record ToolCalls(IReadOnlyList<ToolCall> Calls) : Chunk;
+        public record ToolCalls(IReadOnlyList<ToolCall> Calls) : Chunk;
         /// <summary>
         /// 流终止标记（OpenAI 的 data: [DONE]）
         /// 收到此 chunk 后 AgentLoop 停止本轮流式消费，进入 tool_calls 构建阶段
         /// </summary>
         /// <param name="Reason"></param>
-        internal record Done(string Reason) : Chunk;
+        public record Done(string Reason) : Chunk;
     }
 
     /// <summary>

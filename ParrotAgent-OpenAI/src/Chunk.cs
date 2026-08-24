@@ -2,10 +2,10 @@
 using System.Text.Json;
 using System.Text.Json.Serialization;
 
-namespace ParrotAgent.Kenel
+namespace ParrotAgent.Protocol
 {
     // 
-    namespace Protocol.OpenAI
+    namespace OpenAI
     {
         /// <summary>
         /// 工具调用的函数部分（流式分块返回，需要拼接）

@@ -2,11 +2,12 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using ParrotAgent.Kenel;
 
-namespace ParrotAgent.Kenel
+namespace ParrotAgent.Protocol
 {
     // 
-    namespace Protocol.OpenAI
+    namespace OpenAI
     {
         /// <summary>
         /// 工具调用累积器：按 index 拼接 OpenAI 流式 tool_calls 分片。

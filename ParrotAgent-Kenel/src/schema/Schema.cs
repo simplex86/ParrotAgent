@@ -1,4 +1,5 @@
 ﻿using System.Linq;
+using System.Reflection;
 using System.Text.Json;
 
 namespace ParrotAgent.Kenel
@@ -19,24 +20,16 @@ namespace ParrotAgent.Kenel
         /// <param name="config"></param>
         public static void Init(ProviderConfig config)
         {
-            switch (config.Protocol)
+            var types = Reflection.FindAll<IProtocolSchema, ProtocalSchemaAttribute>();
+            foreach (var type in types)
             {
-                case "openai":
-                    schema = new OpenAISchema();
-                    break;
-                default:
-                    break;
+                var attr = type.GetCustomAttribute<ProtocalSchemaAttribute>();
+                if (attr?.Name == config.Protocol)
+                {
+                    schema = Reflection.CreateInstance<IProtocolSchema>(type);
+                    return;
+                }
             }
-        }
-
-        /// <summary>
-        /// 
-        /// </summary>
-        /// <param name="message"></param>
-        /// <returns></returns>
-        public static object Wire(this IMessage message)
-        {
-            return schema.Wire(message);
         }
 
         /// <summary>

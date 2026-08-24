@@ -1,14 +1,13 @@
 ﻿using System;
 using System.Linq;
+using System.Reflection;
 
 namespace ParrotAgent.Kenel
 {
-    using Protocol.OpenAI;
-
     /// <summary>
     /// 
     /// </summary>
-    internal class ProviderFactory
+    internal class Provider
     {
         /// <summary>
         /// 按 active_provider（回退 providers[0]）选中并创建
@@ -35,13 +34,15 @@ namespace ParrotAgent.Kenel
         private static IProtocolProvider Create(ProviderConfig config)
         {
             ArgumentNullException.ThrowIfNull(config);
-            return config.Protocol switch
+
+            var types = Reflection.FindAll<IProtocolProvider, ProtocolProviderAttribute>();
+            foreach (var type in types)
             {
-                "mock" => new MockProvider(),
-                "openai" => new OpenAIProvider(config),
-                "anthropic" => throw new ProviderNotImplementedException(config),
-                _ => throw new ArgumentException($"不支持的协议: {config.Protocol} (provider={config.Name})")
-            };
+                var attr = type.GetCustomAttribute<ProtocolProviderAttribute>();
+                if (attr?.Name == config.Protocol) return Reflection.CreateInstance<IProtocolProvider, ProviderConfig>(type, config);
+            }
+
+            return new MockProvider();
         }
     }
 

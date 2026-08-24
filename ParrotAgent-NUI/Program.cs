@@ -1,12 +1,14 @@
 ﻿// See https://aka.ms/new-console-template for more information
 
-using ParrotAgent.NUI;
-using ParrotAgent.Tool;
 using System;
 using System.Text;
+using ParrotAgent.NUI;
+using ParrotAgent.Protocol;
+using ParrotAgent.Tool;
 
 Console.Clear();
 
+OpenAIModel.Load();
 ToolModule.Load();
 
 Console.OutputEncoding = Encoding.UTF8;

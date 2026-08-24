@@ -33,6 +33,17 @@ namespace ParrotAgent.Kenel
         /// <summary>
         /// 
         /// </summary>
+        /// <typeparam name="T"></typeparam>
+        /// <param name="type"></param>
+        /// <returns></returns>
+        public static T CreateInstance<T, A>(Type type, A args)
+        {
+            return (T)Activator.CreateInstance(type, args);
+        }
+
+        /// <summary>
+        /// 
+        /// </summary>
         /// <typeparam name="TBase"></typeparam>
         /// <typeparam name="TAttribute"></typeparam>
         /// <returns></returns>

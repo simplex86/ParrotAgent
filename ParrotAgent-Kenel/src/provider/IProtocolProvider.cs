@@ -9,7 +9,7 @@ namespace ParrotAgent.Kenel
     /// <summary>
     /// 
     /// </summary>
-    internal interface IProtocolProvider
+    public interface IProtocolProvider
     {
         /// <summary>
         /// 非流式聊天：给定用户输入，返回完整回复。
@@ -23,5 +23,18 @@ namespace ParrotAgent.Kenel
         /// <param name="cancellationToken"></param>
         /// <returns></returns>
         IAsyncEnumerable<Chunk> ChatStream(IReadOnlyList<IMessage> messages, JsonElement? tools, CancellationToken cancellationToken);
+    }
+
+    /// <summary>
+    /// 
+    /// </summary>
+    public class ProtocolProviderAttribute : Attribute
+    {
+        public string Name { get; }
+
+        public ProtocolProviderAttribute(string name)
+        {
+            Name = name;
+        }
     }
 }

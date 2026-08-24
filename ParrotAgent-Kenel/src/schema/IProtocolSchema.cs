@@ -6,7 +6,7 @@ namespace ParrotAgent.Kenel
     /// <summary>
     /// 
     /// </summary>
-    internal interface IProtocolSchema
+    public interface IProtocolSchema
     {
         /// <summary>
         /// 
@@ -21,5 +21,25 @@ namespace ParrotAgent.Kenel
         /// <param name="tool"></param>
         /// <returns></returns>
         JsonElement Wire(ITool tool);
+    }
+
+    /// <summary>
+    /// 
+    /// </summary>
+    public class ProtocalSchemaAttribute : Attribute
+    {
+        /// <summary>
+        /// 
+        /// </summary>
+        public string Name { get; }
+
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="name"></param>
+        public ProtocalSchemaAttribute(string name)
+        {
+            Name = name;
+        }
     }
 }

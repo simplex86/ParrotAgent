@@ -73,7 +73,7 @@ namespace ParrotAgent.NUI
             var evt = (AgentBeginEvent)e;
 
             Console.ForegroundColor = ConsoleColor.DarkGray;
-            Console.WriteLine($"Provider = {evt.Provider}, Protocol = {evt.Protocol}, Tool Count = {evt.ToolCount}");
+            Console.WriteLine($"Provider = {evt.Provider}, Protocol = {evt.Protocol}, Tools = {evt.ToolCount}");
             Console.ResetColor();
         }
     }

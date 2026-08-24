@@ -6,18 +6,18 @@ using System.Net.ServerSentEvents;
 using System.Runtime.CompilerServices;
 using System.Text.Json;
 using System.Text.Json.Nodes;
-using System.Threading;
-using System.Threading.Tasks;
+using ParrotAgent.Kenel;
 
-namespace ParrotAgent.Kenel
+namespace ParrotAgent.Protocol
 {
-    using Protocol.OpenAI;
+    using OpenAI;
 
     /// <summary>
     /// OpenAI 兼容协议 Provider。
     /// 通过 BaseUrl 覆盖 OpenAI 官方与 DeepSeek 等兼容服务。
     /// </summary>
-    internal class OpenAIProvider : IProtocolProvider
+    [ProtocolProvider("openai")]
+    public class OpenAIProvider : IProtocolProvider
     {
         /// <summary>
         /// 
