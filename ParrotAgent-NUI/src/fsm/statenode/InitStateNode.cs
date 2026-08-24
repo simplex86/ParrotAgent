@@ -46,8 +46,7 @@ namespace ParrotAgent.NUI
             eventSink.Output.Register<AgentBeginEvent>(OnAgentBeignHandler);
 
             var toolRegistry = new ToolRegistry();
-            toolRegistry.Register(new GetOSTool());
-            toolRegistry.Register(new RunCommandTool());
+            toolRegistry.Collect();
 
             var entry = new AgentEntry(toolRegistry, eventSink, cancellationTokenSource.Token);
             entry.Run();

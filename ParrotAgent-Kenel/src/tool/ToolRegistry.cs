@@ -20,11 +20,23 @@ namespace ParrotAgent.Kenel
         /// </summary>
         private readonly Dictionary<string, ITool> tools = new(StringComparer.Ordinal);
 
+        /// <summary>
+        /// 
+        /// </summary>
+        public void Collect()
+        {
+            var types = Reflection.FindAll<ITool, ToolAttribute>();
+            foreach (var type in types)
+            {
+                var tool = Reflection.CreateInstance<ITool>(type);
+                Register(tool);
+            }
+        }
 
         /// <summary>
         /// 注册工具。重名抛 ArgumentException（工具名应跨工具唯一）。
         /// </summary>
-        public void Register(ITool tool)
+        private void Register(ITool tool)
         {
             ArgumentNullException.ThrowIfNull(tool);
             if (string.IsNullOrWhiteSpace(tool.Name))

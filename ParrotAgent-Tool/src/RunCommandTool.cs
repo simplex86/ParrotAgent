@@ -37,13 +37,13 @@ namespace ParrotAgent.Tool
         {
             cancellationToken.ThrowIfCancellationRequested();
 
-            var command = ToolHelper.GetRequiredString(input, "command", out var err1);
+            var command = input.GetRequiredString("command", out var err1);
             if (err1 is not null) return ToolResult.Fail(err1);
-            var args = ToolHelper.GetOptionalString(input, "args", out var err2, "");
+            var args = input.GetOptionalString("args", out var err2, "");
             if (err2 is not null) return ToolResult.Fail(err2);
-            var cwd = ToolHelper.GetOptionalString(input, "cwd", out var err3, "");
+            var cwd = input.GetOptionalString( "cwd", out var err3, "");
             if (err3 is not null) return ToolResult.Fail(err3);
-            var timeoutSec = ToolHelper.GetOptionalInt(input, "timeout", out var err4, DefaultTimeoutSeconds);
+            var timeoutSec = input.GetOptionalInt("timeout", out var err4, DefaultTimeoutSeconds);
             if (err4 is not null) return ToolResult.Fail(err4);
 
             if (string.IsNullOrWhiteSpace(command))
@@ -65,7 +65,8 @@ namespace ParrotAgent.Tool
             // 构造完整命令行：Windows cmd /c "command args" / Unix sh -c "command args"
             var fullCommand = string.IsNullOrEmpty(args) ? command : $"{command} {args}";
             if (OperatingSystem.IsWindows())
-                psi.Arguments = $"/c {fullCommand}";
+                // 先切到 UTF-8 代码页(65001)，再执行用户命令；">nul" 抑制 chcp 自身输出；用 "&" 而非 "&&"：即使 chcp 失败也尽量继续执行命令
+                psi.Arguments = $"/c  chcp 65001 >nul & {fullCommand}";
             else
                 psi.ArgumentList.Add("-c");
 

@@ -3,17 +3,35 @@ using System.Text.Json;
 
 namespace ParrotAgent.Tool
 {
+    /// <summary>
+    /// 
+    /// </summary>
+    [Tool]
     public class GetOSTool : ITool
     {
+        /// <summary>
+        /// 
+        /// </summary>
         public string Name => "get_os";
 
-        public string Description =>
-            "获取Agent所在的操作系统名称";
+        /// <summary>
+        /// 
+        /// </summary>
+        public string Description => "获取Agent所在的操作系统名称";
 
         //public override ToolCategory Category => ToolCategory.Write;
 
+        /// <summary>
+        /// 无参数
+        /// </summary>
         public IReadOnlyList<ToolParameter> Parameters { get; } = [];
 
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="input"></param>
+        /// <param name="cancellationToken"></param>
+        /// <returns></returns>
         public async Task<ToolResult> Execute(JsonElement input, CancellationToken cancellationToken)
         {
             cancellationToken.ThrowIfCancellationRequested();
