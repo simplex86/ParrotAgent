@@ -26,6 +26,13 @@ namespace ParrotAgent.Kenel
         /// <param name="Calls"></param>
         public record ToolCalls(IReadOnlyList<ToolCall> Calls) : Chunk;
         /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="PromptTokens"></param>
+        /// <param name="CompletionTokens"></param>
+        /// <param name="TotalTokens"></param>
+        public record Stop(int PromptTokens, int CompletionTokens, int TotalTokens) : Chunk;
+        /// <summary>
         /// 流终止标记（OpenAI 的 data: [DONE]）
         /// 收到此 chunk 后 AgentLoop 停止本轮流式消费，进入 tool_calls 构建阶段
         /// </summary>

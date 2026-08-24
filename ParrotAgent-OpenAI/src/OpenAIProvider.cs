@@ -149,7 +149,11 @@ namespace ParrotAgent.Protocol
                 // 4. 普通内容结束
                 if (choice.FinishReason == "stop")
                 {
-                    yield return new Chunk.Done("stop");
+                    var usage = chunk.Usage;
+                    if (usage is not null)
+                    {
+                        yield return new Chunk.Stop(usage.PromptTokens, usage.CompletionTokens, usage.TotalTokens);
+                    }
                 }
             }
         }

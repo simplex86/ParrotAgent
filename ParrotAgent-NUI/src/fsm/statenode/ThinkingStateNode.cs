@@ -74,9 +74,11 @@ namespace ParrotAgent.NUI
         /// <returns></returns>
         private void OnAssistantCompletedHandler(IEvent e)
         {
+            var evt = (AssistantCompletedEvent)e;
+
             Console.WriteLine();
             Console.ForegroundColor = ConsoleColor.DarkGray;
-            Console.WriteLine("Completed!");
+            Console.WriteLine($"Completed! Prompt Tokens = {evt.PromptTokens}, Total Tokens = {evt.TotalTokens}");
             Console.ResetColor();
 
             Machine.Run<PendingStateNode>().Wait();

@@ -46,7 +46,8 @@
     /// </summary>
     public struct AssistantCompletedEvent : IEvent
     {
-
+        public int PromptTokens;
+        public int TotalTokens;
     }
 
     /// <summary>

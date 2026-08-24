@@ -50,6 +50,9 @@ namespace ParrotAgent.Kenel
         /// <returns></returns>
         public async Task Run(Conversation conversation, bool stream, CancellationToken cancellationToken)
         {
+            var uPromptTokens = 0;
+            var uTotalTokens = 0;
+
             try
             {
                 var tools = toolRegistry.Wire();
@@ -73,6 +76,10 @@ namespace ParrotAgent.Kenel
                             case Chunk.ToolCalls(var toolcalls):
                                 functions = toolcalls;
                                 break;
+                            case Chunk.Stop(var promptTokens, var completionTokens, var totalTokens):
+                                uPromptTokens = promptTokens;
+                                uTotalTokens  = totalTokens;
+                                break;
                             case Chunk.Done:
                                 break;
                         }
@@ -91,7 +98,6 @@ namespace ParrotAgent.Kenel
                     // 无工具调用 → Agent 完成
                     if (functions == null || functions.Count == 0)
                     {
-                        //eventSink.Output.Broadcast(new AssistantCompletedEvent());
                         return;
                     }
 
@@ -108,7 +114,10 @@ namespace ParrotAgent.Kenel
             }
             finally
             {
-                eventSink.Output.Broadcast(new AssistantCompletedEvent());
+                eventSink.Output.Broadcast(new AssistantCompletedEvent() { 
+                    PromptTokens = uPromptTokens, 
+                    TotalTokens = uTotalTokens 
+                });
             }
         }
 
