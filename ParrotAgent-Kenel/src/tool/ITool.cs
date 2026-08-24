@@ -52,7 +52,7 @@ namespace ParrotAgent.Kenel
         /// <summary>
         /// 
         /// </summary>
-        List<ToolParameter> Parameters { get; }
+        IReadOnlyList<ToolParameter> Parameters { get; }
 
         /// <summary>
         /// 执行工具。

@@ -23,8 +23,8 @@ namespace ParrotAgent.Kenel
         /// - 同 index 的多片需累积：Id/Name 取首个非空，Arguments 拼接所有片段
         /// AgentLoop 按 Index 累积，流结束后 Build 成完整 ToolCall。
         /// </summary>
-        /// <param name="ToolCalls"></param>
-        internal record ToolCallDelta(IReadOnlyList<ToolCall> ToolCalls) : Chunk;
+        /// <param name="Calls"></param>
+        internal record ToolCalls(IReadOnlyList<ToolCall> Calls) : Chunk;
         /// <summary>
         /// 流终止标记（OpenAI 的 data: [DONE]）
         /// 收到此 chunk 后 AgentLoop 停止本轮流式消费，进入 tool_calls 构建阶段
@@ -38,12 +38,12 @@ namespace ParrotAgent.Kenel
     /// </summary>
     /// <param name="Id"></param>
     /// <param name="Type"></param>
-    /// <param name="FunctionName"></param>
-    /// <param name="FunctionArgumentsJson"></param>
+    /// <param name="Name"></param>
+    /// <param name="Args">完整 JSON，可直接反序列化为业务参数对象</param>
     public record ToolCall(
         string Id,
-        string Type,
-        string FunctionName,
-        string FunctionArgumentsJson // 完整 JSON，可直接反序列化为业务参数对象
+        //string Type,
+        string Name,
+        string Args
     );
 }

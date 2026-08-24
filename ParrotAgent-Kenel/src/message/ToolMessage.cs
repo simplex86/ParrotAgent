@@ -7,7 +7,7 @@ namespace ParrotAgent.Kenel
     /// 工具消息
     /// </summary>
     /// <param name="Content"></param>
-    internal record ToolMessage(string content) : IMessage
+    internal record ToolMessage(string content, string id) : IMessage
     {
         /// <summary>
         /// 
@@ -24,6 +24,6 @@ namespace ParrotAgent.Kenel
         /// <summary>
         /// 
         /// </summary>
-        public string? ToolCallId { get; init; }
+        public string? ToolCallId { get; init; } = id;
     }
 }

@@ -29,11 +29,6 @@ namespace ParrotAgent.Kenel
         private StreamableHttpClient http;
 
         /// <summary>
-        /// 缓存同一个 tool call 的分片（key 是 ToolCallChunk.Index）
-        /// </summary>
-        private readonly Dictionary<int, ToolCallChunk> toolcalls = new();
-
-        /// <summary>
         /// 
         /// </summary>
         /// <param name="config"></param>
@@ -92,7 +87,8 @@ namespace ParrotAgent.Kenel
                                                          [EnumeratorCancellation] CancellationToken cancellationToken)
         {
             cancellationToken.ThrowIfCancellationRequested();
-            toolcalls.Clear();
+
+            var accumulator = new ToolCallAccumulator();
 
             var request = BuildRequestBody(messages, tools, true);
             using var response = await http.Send(request, "chat/completions", cancellationToken);
@@ -138,47 +134,16 @@ namespace ParrotAgent.Kenel
                         if (!toolcall.Index.HasValue) continue;
                         var idx = toolcall.Index.Value;
 
-                        // 缓存或更新 tool call 分片
-                        if (toolcalls.TryGetValue(idx, out var existing))
-                        {
-                            // 拼接 arguments（核心！流式返回的 arguments 是分段的）
-                            var existingArgs = existing.Function?.Arguments ?? "";
-                            var newArgs = toolcall.Function?.Arguments ?? "";
-                            var mergedArgs = existingArgs + newArgs;
-
-                            toolcalls[idx] = existing with
-                            {
-                                Id = toolcall.Id ?? existing.Id,
-                                Type = toolcall.Type ?? existing.Type,
-                                Function = existing.Function with
-                                {
-                                    Name = toolcall.Function?.Name ?? existing.Function?.Name,
-                                    Arguments = mergedArgs
-                                }
-                            };
-                        }
-                        else
-                        {
-                            toolcalls[idx] = toolcall;
-                        }
+                        var function = toolcall.Function;
+                        accumulator.Accumulate(idx, toolcall.Id, function?.Name, function?.Arguments);
                     }
                 }
 
                 // 3. 工具调用结束：返回完整的 tool calls
                 if (choice.FinishReason == "tool_calls")
                 {
-                    var completedToolCalls = toolcalls.Values.Where(tc => tc.Id is not null && tc.Function?.Name is not null)
-                                                             .Select(tc => new ToolCall(tc.Id!,
-                                                                                        tc.Type ?? "function",
-                                                                                        tc.Function!.Name!,
-                                                                                        tc.Function.Arguments ?? "{}"))
-                                                             .ToList();
-
-                    if (completedToolCalls.Count > 0)
-                    {
-                        yield return new Chunk.ToolCallDelta(completedToolCalls);
-                    }
-                    toolcalls.Clear();
+                    var toolcalls = accumulator.Build();
+                    yield return new Chunk.ToolCalls(toolcalls);
                 }
 
                 // 4. 普通内容结束

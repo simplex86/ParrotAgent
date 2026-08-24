@@ -2,6 +2,7 @@
 using System.Threading;
 using System.Threading.Tasks;
 using ParrotAgent.Kenel;
+using ParrotAgent.Tool;
 
 namespace ParrotAgent.NUI
 {
@@ -44,10 +45,14 @@ namespace ParrotAgent.NUI
 
             eventSink.Output.Register<AgentBeginEvent>(OnAgentBeignHandler);
 
-            var entry = new AgentEntry(eventSink, cancellationTokenSource.Token);
+            var toolRegistry = new ToolRegistry();
+            toolRegistry.Register(new GetOSTool());
+            toolRegistry.Register(new RunCommandTool());
+
+            var entry = new AgentEntry(toolRegistry, eventSink, cancellationTokenSource.Token);
             entry.Run();
 
-            await Machine.Run("pending");
+            await Machine.Run<PendingStateNode>();
         }
 
         /// <summary>
@@ -69,7 +74,7 @@ namespace ParrotAgent.NUI
             var evt = (AgentBeginEvent)e;
 
             Console.ForegroundColor = ConsoleColor.DarkGray;
-            Console.WriteLine($"Provider = {evt.Provider}, Protocol = {evt.Protocol}");
+            Console.WriteLine($"Provider = {evt.Provider}, Protocol = {evt.Protocol}, Tool Count = {evt.ToolCount}");
             Console.ResetColor();
         }
     }

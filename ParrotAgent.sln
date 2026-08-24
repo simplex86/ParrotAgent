@@ -1,11 +1,9 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio Version 18
-VisualStudioVersion = 18.9.12105.275 stable
+VisualStudioVersion = 18.9.12105.275
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ParrotAgent-Kenel", "ParrotAgent-Kenel\ParrotAgent-Kenel.csproj", "{0DC0355B-002E-4A19-8411-86EF1F312DE5}"
-EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ParrotAgent-TUI", "ParrotAgent-TUI\ParrotAgent-TUI.csproj", "{48D1F33B-5222-456C-A413-413180E755EE}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ParrotAgent-NUI", "ParrotAgent-NUI\ParrotAgent-NUI.csproj", "{703F3E49-5334-4F05-AA66-DD719E9FEB06}"
 EndProject
@@ -21,10 +19,6 @@ Global
 		{0DC0355B-002E-4A19-8411-86EF1F312DE5}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{0DC0355B-002E-4A19-8411-86EF1F312DE5}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{0DC0355B-002E-4A19-8411-86EF1F312DE5}.Release|Any CPU.Build.0 = Release|Any CPU
-		{48D1F33B-5222-456C-A413-413180E755EE}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{48D1F33B-5222-456C-A413-413180E755EE}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{48D1F33B-5222-456C-A413-413180E755EE}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{48D1F33B-5222-456C-A413-413180E755EE}.Release|Any CPU.Build.0 = Release|Any CPU
 		{703F3E49-5334-4F05-AA66-DD719E9FEB06}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{703F3E49-5334-4F05-AA66-DD719E9FEB06}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{703F3E49-5334-4F05-AA66-DD719E9FEB06}.Release|Any CPU.ActiveCfg = Release|Any CPU

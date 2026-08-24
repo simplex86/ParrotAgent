@@ -37,12 +37,32 @@ namespace ParrotAgent.Kenel
         }
 
         /// <summary>
+        /// 追加 assistant 消息（AI 的完整回复）。
+        /// </summary>
+        public void AddAssistant(string content, IReadOnlyList<ToolCall> toolcalls)
+        {
+            ArgumentNullException.ThrowIfNull(content);
+            ArgumentNullException.ThrowIfNull(toolcalls);
+            history.Add(new AssistantMessage(content) { ToolCalls = toolcalls});
+        }
+
+        /// <summary>
+        /// 追加 tool 消息
+        /// </summary>
+        public void AddTool(string content, string callId)
+        {
+            ArgumentNullException.ThrowIfNull(content);
+            ArgumentNullException.ThrowIfNull(callId);
+            history.Add(new ToolMessage(content, callId));
+        }
+
+        /// <summary>
         /// 
         /// </summary>
         /// <returns></returns>
         public IReadOnlyList<IMessage> ToProviderMessages()
         {
-            return history.ToArray();
+            return history;
         }
     }
 }

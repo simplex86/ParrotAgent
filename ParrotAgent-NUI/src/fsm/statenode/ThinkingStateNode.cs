@@ -33,6 +33,8 @@ namespace ParrotAgent.NUI
         {
             eventSink.Output.Register<AssistantDeltaEvent>(OnAssistantDeltaHandler);
             eventSink.Output.Register<AssistantCompletedEvent>(OnAssistantCompletedHandler);
+            eventSink.Output.Register<ToolCallEvent>(OnToolCallHandler);
+            eventSink.Output.Register<ToolResultEvent>(OnToolResultHandler);
 
             Console.ForegroundColor = ConsoleColor.DarkGray;
             Console.WriteLine("Thinking...");
@@ -49,6 +51,8 @@ namespace ParrotAgent.NUI
         {
             eventSink.Output.Unregister<AssistantDeltaEvent>(OnAssistantDeltaHandler);
             eventSink.Output.Unregister<AssistantCompletedEvent>(OnAssistantCompletedHandler);
+            eventSink.Output.Unregister<ToolCallEvent>(OnToolCallHandler);
+            eventSink.Output.Unregister<ToolResultEvent>(OnToolResultHandler);
 
             await Task.CompletedTask;
         }
@@ -75,7 +79,42 @@ namespace ParrotAgent.NUI
             Console.WriteLine("Completed!");
             Console.ResetColor();
 
-            Machine.Run("pending").Wait();
+            Machine.Run<PendingStateNode>().Wait();
+        }
+
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="e"></param>
+        private void OnToolCallHandler(IEvent e)
+        {
+            var evt = (ToolCallEvent)e;
+
+            Console.WriteLine();
+            Console.ForegroundColor = ConsoleColor.DarkGray;
+            Console.WriteLine($"Invoke Function = {evt.Call.Name}, Arguments = {evt.Call.Args}");
+            Console.ResetColor();
+        }
+
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="e"></param>
+        private void OnToolResultHandler(IEvent e)
+        {
+            var evt = (ToolResultEvent)e;
+
+            if (evt.Result.Success)
+            {
+                Console.ForegroundColor = ConsoleColor.Green;
+                Console.WriteLine($"Invoke Function = {evt.Call.Name}, Arguments = {evt.Call.Args}, Result = {evt.Result.Content}");
+            }
+            else
+            {
+                Console.ForegroundColor = ConsoleColor.Red;
+                Console.WriteLine($"Invoke Function = {evt.Call.Name}, Arguments = {evt.Call.Args}, Result = {evt.Result.Error}");
+            }
+            Console.ResetColor();
         }
     }
 }

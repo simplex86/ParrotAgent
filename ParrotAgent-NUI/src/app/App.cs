@@ -28,12 +28,12 @@ namespace ParrotAgent.NUI
             var eventSink = new EventSink();
             var cancellationTokenSource = new CancellationTokenSource();
 
-            machine.Add("init", new InitStateNode(machine, eventSink, cancellationTokenSource));
-            machine.Add("pending", new PendingStateNode(machine, eventSink));
-            machine.Add("thinking", new ThinkingStateNode(machine, eventSink));
-            machine.Add("close", new CloseStateNode(machine, cancellationTokenSource));
+            machine.Add(new InitStateNode(machine, eventSink, cancellationTokenSource));
+            machine.Add(new PendingStateNode(machine, eventSink));
+            machine.Add(new ThinkingStateNode(machine, eventSink));
+            machine.Add(new CloseStateNode(machine, cancellationTokenSource));
 
-            await machine.Run("init");
+            await machine.Run<InitStateNode>();
         }
     }
 }

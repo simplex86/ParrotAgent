@@ -1,6 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Text.Json;
+using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -23,6 +23,10 @@ namespace ParrotAgent.Kenel
         /// 
         /// </summary>
         private ToolRegistry toolRegistry;
+        /// <summary>
+        /// 
+        /// </summary>
+        private BatchToolExecutor toolExecutor;
 
         /// <summary>
         /// 
@@ -30,11 +34,12 @@ namespace ParrotAgent.Kenel
         /// <param name="chatProvider"></param>
         /// <param name="eventSink"></param>
         /// <param name="cancellationToken"></param>
-        public AgentLoop(IProtocolProvider chatProvider, ToolRegistry toolRegistry, EventSink eventSink)
+        public AgentLoop(IProtocolProvider chatProvider, ToolRegistry toolRegistry, BatchToolExecutor toolExecutor, EventSink eventSink)
         {
             this.chatProvider = chatProvider;
             this.eventSink = eventSink;
             this.toolRegistry = toolRegistry;
+            this.toolExecutor = toolExecutor;
         }
 
         /// <summary>
@@ -43,55 +48,59 @@ namespace ParrotAgent.Kenel
         /// <param name="messages"></param>
         /// <param name="stream"></param>
         /// <returns></returns>
-        public async Task Run(IReadOnlyList<IMessage> messages, bool stream, CancellationToken cancellationToken)
-        {
-            var tools = toolRegistry.Wire();
-
-            while (!cancellationToken.IsCancellationRequested)
-            {
-                await Chat(messages, tools, stream, cancellationToken);
-                return;
-            }
-        }
-
-        /// <summary>
-        /// 
-        /// </summary>
-        /// <param name="messages"></param>
-        /// <returns></returns>
-        private async Task Chat(IReadOnlyList<IMessage> messages, JsonElement? tools, bool stream, CancellationToken cancellationToken)
+        public async Task Run(Conversation conversation, bool stream, CancellationToken cancellationToken)
         {
             try
             {
-                if (stream)
+                var tools = toolRegistry.Wire();
+
+                for (int i = 0; i < 10; i++)
                 {
+                    cancellationToken.ThrowIfCancellationRequested();
+                    var messages = conversation.ToProviderMessages();
+
+                    StringBuilder reply = new StringBuilder();
+                    IReadOnlyList<ToolCall>? functions = null;
+
                     await foreach (var chunk in chatProvider.ChatStream(messages, tools, cancellationToken))
                     {
                         switch (chunk)
                         {
                             case Chunk.TextDelta(var delta):
-                                eventSink.Output.Boardcast(new AssistantDeltaEvent()
-                                {
-                                    Delta = delta
-                                });
+                                reply.Append(delta);
+                                eventSink.Output.Broadcast(new AssistantDeltaEvent() { Delta = delta });
                                 break;
-                            //case Chunk.ToolCallDelta(var idx, var id, var name, var args):
-                            //    tcAcc.Accumulate(idx, id, name, args);
-                            //    break;
+                            case Chunk.ToolCalls(var toolcalls):
+                                functions = toolcalls;
+                                break;
                             case Chunk.Done:
                                 break;
                         }
-                        
                     }
-                }
-                else
-                {
-                    var response = await chatProvider.Chat(messages, tools, cancellationToken);
-                    eventSink.Output.Boardcast(new AssistantDeltaEvent()
+
+                    var content = reply.ToString();
+                    if (functions == null || functions.Count == 0)
                     {
-                        Delta = response
-                    });
+                        conversation.AddAssistant(content);
+                    }
+                    else
+                    {
+                        conversation.AddAssistant(content, functions);
+                    }
+
+                    // 无工具调用 → Agent 完成
+                    if (functions == null || functions.Count == 0)
+                    {
+                        //eventSink.Output.Broadcast(new AssistantCompletedEvent());
+                        return;
+                    }
+
+                    await OnExcuteToolCalls(conversation, functions, cancellationToken);
                 }
+            }
+            catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)
+            {
+
             }
             catch (Exception ex)
             {
@@ -99,10 +108,39 @@ namespace ParrotAgent.Kenel
             }
             finally
             {
-                eventSink.Output.Boardcast(new AssistantCompletedEvent());
+                eventSink.Output.Broadcast(new AssistantCompletedEvent());
+            }
+        }
+
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="toolcalls"></param>
+        /// <param name="cancellationToken"></param>
+        /// <returns></returns>
+        private async Task OnExcuteToolCalls(Conversation conversation, IReadOnlyList<ToolCall> toolcalls, CancellationToken cancellationToken)
+        {
+            foreach (var call in toolcalls)
+            {
+                eventSink.Output.Broadcast(new ToolCallEvent() { Call = call });
             }
 
-            
+            var results = await toolExecutor.Execute(toolcalls, cancellationToken);
+
+            for (int i=0; i<toolcalls.Count; i++)
+            {
+                var call = toolcalls[i];
+                var result = results[i];
+
+                var content = result.Success ? result.Content : $"错误：{result.Error}";
+                conversation.AddTool(content, call.Id);
+
+                eventSink.Output.Broadcast(new ToolResultEvent()
+                {
+                    Call = call,
+                    Result = result,
+                });
+            }
         }
     }
 }

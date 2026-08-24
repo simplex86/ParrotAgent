@@ -40,12 +40,12 @@ namespace ParrotAgent.NUI
                 input == "/exit" ||
                 input == "/quit")
             {
-                await Machine.Run("close");
+                await Machine.Run<CloseStateNode>();
                 return;
             }
 
-            await Machine.Run("thinking");
-            eventSink.Input.Boardcast(new UserPromptEvent()
+            await Machine.Run<ThinkingStateNode>();
+            eventSink.Input.Broadcast(new UserPromptEvent()
             {
                 Prompt = input
             });

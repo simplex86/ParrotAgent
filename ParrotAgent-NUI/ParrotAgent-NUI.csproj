@@ -12,6 +12,7 @@
 
   <ItemGroup>
     <ProjectReference Include="..\ParrotAgent-Kenel\ParrotAgent-Kenel.csproj" />
+    <ProjectReference Include="..\ParrotAgent-Tool\ParrotAgent-Tool.csproj" />
   </ItemGroup>
 
 </Project>

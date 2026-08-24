@@ -13,7 +13,13 @@ namespace ParrotAgent.Kenel
         /// <summary>
         /// 
         /// </summary>
+        public int Count => tools.Count;
+
+        /// <summary>
+        /// 
+        /// </summary>
         private readonly Dictionary<string, ITool> tools = new(StringComparer.Ordinal);
+
 
         /// <summary>
         /// 注册工具。重名抛 ArgumentException（工具名应跨工具唯一）。

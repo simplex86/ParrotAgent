@@ -16,6 +16,10 @@ namespace ParrotAgent.Kenel
         /// <summary>
         /// 
         /// </summary>
+        private ToolRegistry toolRegistry;
+        /// <summary>
+        /// 
+        /// </summary>
         private EventSink eventSink;
         /// <summary>
         /// 
@@ -26,9 +30,10 @@ namespace ParrotAgent.Kenel
         /// 
         /// </summary>
         /// <param name="cancellationToken"></param>
-        public AgentEntry(EventSink eventSink, CancellationToken cancellationToken)
+        public AgentEntry(ToolRegistry toolRegistry, EventSink eventSink, CancellationToken cancellationToken)
         {
             this.chatProvider = new MockProvider();
+            this.toolRegistry = toolRegistry;
             this.eventSink = eventSink;
             this.cancellationToken = cancellationToken;
         }
@@ -43,17 +48,18 @@ namespace ParrotAgent.Kenel
                 var config = AgentConfigLoader.Load();
                 {
                     var provider = config.Providers.FirstOrDefault(p => p.Name == config.ActiveProvider);
-                    eventSink.Output.Boardcast(new AgentBeginEvent()
+                    eventSink.Output.Broadcast(new AgentBeginEvent()
                     {
                         Provider = provider.Name,
-                        Protocol = provider.Protocol
+                        Protocol = provider.Protocol,
+                        ToolCount = toolRegistry.Count,
                     });
 
                     Schema.Init(provider);
                 }
                 chatProvider = ProviderFactory.CreateActive(config);
 
-                var agent = new Agent(chatProvider, eventSink, cancellationToken);
+                var agent = new Agent(chatProvider, toolRegistry, eventSink, cancellationToken);
                 agent.Run();
             }
             catch (Exception ex)

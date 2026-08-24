@@ -21,16 +21,16 @@ namespace ParrotAgent.Kenel
                 {
                     role = OpenAISchemaHelper.Wire(message.Role),
                     content = string.IsNullOrEmpty(message.Content) ? null : message.Content,
-                    //tool_calls = message.ToolCalls.Select(tc => new
-                    //{
-                    //    id = tc.Id,
-                    //    type = "function",
-                    //    function = new
-                    //    {
-                    //        name = tc.Name,
-                    //        arguments = tc.Input.GetRawText()
-                    //    }
-                    //}).ToArray()
+                    tool_calls = message.ToolCalls.Select(tc => new
+                    {
+                        id = tc.Id,
+                        type = "function",
+                        function = new
+                        {
+                            name = tc.Name,
+                            arguments = tc.Args
+                        }
+                    }).ToArray()
                 };
             }
 

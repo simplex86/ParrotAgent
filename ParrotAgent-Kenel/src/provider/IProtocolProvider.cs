@@ -23,6 +23,6 @@ namespace ParrotAgent.Kenel
         /// <param name="messages"></param>
         /// <param name="cancellationToken"></param>
         /// <returns></returns>
-        IAsyncEnumerable<Chunk> ChatStream(IReadOnlyList<IMessage> messages, JsonElement? tools, [EnumeratorCancellation] CancellationToken cancellationToken);
+        IAsyncEnumerable<Chunk> ChatStream(IReadOnlyList<IMessage> messages, JsonElement? tools, CancellationToken cancellationToken);
     }
 }

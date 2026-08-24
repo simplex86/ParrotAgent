@@ -14,6 +14,7 @@
     {
         public string Provider;
         public string Protocol;
+        public int ToolCount;
     }
 
     /// <summary>
@@ -46,5 +47,22 @@
     public struct AssistantCompletedEvent : IEvent
     {
 
+    }
+
+    /// <summary>
+    /// 
+    /// </summary>
+    public struct ToolCallEvent : IEvent
+    {
+        public ToolCall Call;
+    }
+
+    /// <summary>
+    /// 
+    /// </summary>
+    public struct ToolResultEvent : IEvent
+    {
+        public ToolCall Call;
+        public ToolResult Result;
     }
 }

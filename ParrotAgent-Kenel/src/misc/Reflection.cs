@@ -40,7 +40,7 @@ namespace ParrotAgent.Kenel
         {
             var list = new List<Type>();
 
-            var assemblies = AssemblyLoadContext.Default.Assemblies; //AppDomain.CurrentDomain.GetReferanceAssemblies();
+            var assemblies = AppDomain.CurrentDomain.GetReferanceAssemblies();
             foreach (var assembly in assemblies)
             {
                 var types = FindAll<TBase, TAttribute>(assembly);
@@ -78,6 +78,44 @@ namespace ParrotAgent.Kenel
             }
 
             return list;
+        }
+
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="domain"></param>
+        /// <returns></returns>
+        private static HashSet<Assembly> GetReferanceAssemblies(this AppDomain domain)
+        {
+            var hashset = new HashSet<Assembly>();
+
+            var assemblies = domain.GetAssemblies();
+            foreach (var assembly in assemblies)
+            {
+                hashset.Add(assembly);
+                GetReferanceAssemblies(assembly, hashset);
+            }
+
+            return hashset;
+        }
+
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="assembly"></param>
+        /// <param name="hashset"></param>
+        private static void GetReferanceAssemblies(Assembly assembly, HashSet<Assembly> hashset)
+        {
+            var assemblyNames = assembly.GetReferencedAssemblies();
+            foreach (var assemblyName in assemblyNames)
+            {
+                var ass = Assembly.Load(assemblyName);
+                if (!hashset.Contains(ass))
+                {
+                    hashset.Add(ass);
+                    GetReferanceAssemblies(ass, hashset);
+                }
+            }
         }
     }
 }

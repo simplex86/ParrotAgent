@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Threading.Tasks;
 
 namespace ParrotAgent.NUI
@@ -8,26 +9,39 @@ namespace ParrotAgent.NUI
     /// </summary>
     internal class StateMachine
     {
-        private Dictionary<string, IStateNode> states = new Dictionary<string, IStateNode>();
+        private Dictionary<Type, IStateNode> states = new Dictionary<Type, IStateNode>();
         private IStateNode? current = null;
 
-        public void Add(string name, IStateNode state)
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <typeparam name="T"></typeparam>
+        /// <param name="state"></param>
+        public void Add<T>(T state) where T : IStateNode
         {
-            if (!states.ContainsKey(name))
+            var type = typeof(T);
+            if (!states.ContainsKey(type))
             {
-                states.Add(name, state);
+                states.Add(type, state);
             }
         }
 
-        public async Task Run(string name)
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <typeparam name="T"></typeparam>
+        /// <returns></returns>
+        public async Task Run<T>() where T : IStateNode
         {
+            var type = typeof(T);
+
             if (current != null)
             {
                 await current.Exit();
                 current = null;
             }
 
-            if (states.TryGetValue(name, out var state))
+            if (states.TryGetValue(type, out var state))
             {
                 current = state;
                 await current.Enter();

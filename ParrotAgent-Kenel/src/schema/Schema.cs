@@ -50,5 +50,15 @@ namespace ParrotAgent.Kenel
             return tools.Count > 0 ? JsonSerializer.SerializeToElement(tools.Select(t => schema.Wire(t)).ToArray())
                                    : null;
         }
+
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="text"></param>
+        /// <returns></returns>
+        public static JsonElement ToJson(this string text)
+        {
+            return JsonSerializer.Deserialize<JsonElement>(text);
+        }
     }
 }
