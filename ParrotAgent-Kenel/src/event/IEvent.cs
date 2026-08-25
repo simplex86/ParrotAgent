@@ -1,4 +1,6 @@
-﻿namespace ParrotAgent.Kenel
+﻿using System.Threading.Tasks;
+
+namespace ParrotAgent.Kenel
 {
     /// <summary>
     /// 事件接口
@@ -30,7 +32,7 @@
     /// </summary>
     public struct UserPromptEvent : IEvent
     {
-        public string Prompt;
+        public TaskCompletionSource<string> TaskCompletionSource;
     }
 
     /// <summary>
@@ -65,5 +67,14 @@
     {
         public ToolCall Call;
         public ToolResult Result;
+    }
+
+    /// <summary>
+    /// 
+    /// </summary>
+    public struct HitlEvent : IEvent
+    {
+        public ToolCall ToolCall;
+        public TaskCompletionSource<HitlOption> TaskCompletionSource;
     }
 }

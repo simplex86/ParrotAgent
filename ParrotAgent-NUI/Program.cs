@@ -2,12 +2,14 @@
 
 using System;
 using System.Text;
+using ParrotAgent.Log;
 using ParrotAgent.NUI;
 using ParrotAgent.Protocol;
 using ParrotAgent.Tool;
 
 Console.Clear();
 
+LogModule.Load();
 OpenAIModel.Load();
 ToolModule.Load();
 

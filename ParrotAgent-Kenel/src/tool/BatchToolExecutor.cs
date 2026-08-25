@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -18,18 +17,18 @@ namespace ParrotAgent.Kenel
         /// <summary>
         /// 
         /// </summary>
-        private readonly ToolRegistry registry;
+        private readonly IHitl hitl;
 
         /// <summary>
         /// 
         /// </summary>
         /// <param name="executor"></param>
-        /// <param name="registry"></param>
+        /// <param name="hitl"></param>
         /// <exception cref="ArgumentNullException"></exception>
-        public BatchToolExecutor(ToolExecutor executor, ToolRegistry registry)
+        public BatchToolExecutor(ToolExecutor executor, IHitl hitl)
         {
             this.executor = executor ?? throw new ArgumentNullException(nameof(executor));
-            this.registry = registry ?? throw new ArgumentNullException(nameof(registry));
+            this.hitl = hitl ?? throw new ArgumentNullException(nameof(hitl));
         }
 
         /// <summary>
@@ -48,8 +47,16 @@ namespace ParrotAgent.Kenel
             foreach (var call in calls)
             {
                 cancellationToken.ThrowIfCancellationRequested();
-                var result = await executor.Execute(call, cancellationToken);
-                results.Add(result);
+
+                var rhitl = await hitl.Request(call, cancellationToken);
+                if (rhitl.Option == HitlOption.Deny)
+                {
+                    results.Add(ToolResult.Fail(rhitl.Reason ?? "用户拒绝执行"));
+                    continue;
+                }
+
+                var rtool = await executor.Execute(call, cancellationToken);
+                results.Add(rtool);
             }
 
             return results;

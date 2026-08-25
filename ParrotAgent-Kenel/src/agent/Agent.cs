@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Text;
 using System.Threading;
+using System.Threading.Tasks;
 
 namespace ParrotAgent.Kenel
 {
@@ -20,6 +21,10 @@ namespace ParrotAgent.Kenel
         /// <summary>
         /// 
         /// </summary>
+        private EventSink eventSink;
+        /// <summary>
+        /// 
+        /// </summary>
         private CancellationToken cancellationToken;
 
         /// <summary>
@@ -29,12 +34,12 @@ namespace ParrotAgent.Kenel
         /// <param name="cancellationToken"></param>
         public Agent(IProtocolProvider chatProvider, ToolRegistry toolRegistry, EventSink eventSink, CancellationToken cancellationToken)
         {
-            eventSink.Input.Register<UserPromptEvent>(OnUserPromptHandler);
-
-            var toolExecutor = new ToolExecutor(toolRegistry);
-            var batchExecutor = new BatchToolExecutor(toolExecutor, toolRegistry);
+            var executor = new ToolExecutor(toolRegistry);
+            var hitl = new PromptHitl(eventSink);
+            var batchExecutor = new BatchToolExecutor(executor, hitl);
 
             this.agentLoop = new AgentLoop(chatProvider, toolRegistry, batchExecutor, eventSink);
+            this.eventSink = eventSink;
             this.cancellationToken = cancellationToken;
         }
 
@@ -42,27 +47,25 @@ namespace ParrotAgent.Kenel
         /// 
         /// </summary>
         /// <returns></returns>
-        public void Run()
+        public async Task Run()
         {
-            
-        }
-
-        /// <summary>
-        /// 
-        /// </summary>
-        /// <param name="e"></param>
-        private void OnUserPromptHandler(IEvent e)
-        {
-            var evt = (UserPromptEvent)e;
-            try
+            while (!cancellationToken.IsCancellationRequested)
             {
-                conversation.AddUser(evt.Prompt);
-                agentLoop.Run(conversation, true, cancellationToken).Wait();
-            }
-            catch (Exception ex)
-            {
+                var taskCompletionSource = new TaskCompletionSource<string>();
+                eventSink.Broadcast(new UserPromptEvent() { TaskCompletionSource = taskCompletionSource });
+                var prompt = await taskCompletionSource.Task;
+                try
+                {
+                    conversation.AddUser(prompt);
+                    await agentLoop.Run(conversation, true, cancellationToken);
+                }
+                catch (Exception ex)
+                {
 
+                }
             }
+
+            eventSink.Broadcast(new AgentEndEvent());
         }
     }
 }

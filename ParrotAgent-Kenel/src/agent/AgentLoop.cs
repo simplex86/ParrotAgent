@@ -37,9 +37,9 @@ namespace ParrotAgent.Kenel
         public AgentLoop(IProtocolProvider chatProvider, ToolRegistry toolRegistry, BatchToolExecutor toolExecutor, EventSink eventSink)
         {
             this.chatProvider = chatProvider;
-            this.eventSink = eventSink;
             this.toolRegistry = toolRegistry;
             this.toolExecutor = toolExecutor;
+            this.eventSink = eventSink;
         }
 
         /// <summary>
@@ -71,7 +71,7 @@ namespace ParrotAgent.Kenel
                         {
                             case Chunk.TextDelta(var delta):
                                 reply.Append(delta);
-                                eventSink.Output.Broadcast(new AssistantDeltaEvent() { Delta = delta });
+                                eventSink.Broadcast(new AssistantDeltaEvent() { Delta = delta });
                                 break;
                             case Chunk.ToolCalls(var toolcalls):
                                 functions = toolcalls;
@@ -114,7 +114,8 @@ namespace ParrotAgent.Kenel
             }
             finally
             {
-                eventSink.Output.Broadcast(new AssistantCompletedEvent() { 
+                eventSink.Broadcast(new AssistantCompletedEvent()
+                { 
                     PromptTokens = uPromptTokens, 
                     TotalTokens = uTotalTokens 
                 });
@@ -131,7 +132,7 @@ namespace ParrotAgent.Kenel
         {
             foreach (var call in toolcalls)
             {
-                eventSink.Output.Broadcast(new ToolCallEvent() { Call = call });
+                eventSink.Broadcast(new ToolCallEvent() { Call = call });
             }
 
             var results = await toolExecutor.Execute(toolcalls, cancellationToken);
@@ -144,7 +145,7 @@ namespace ParrotAgent.Kenel
                 var content = result.Success ? result.Content : $"错误：{result.Error}";
                 conversation.AddTool(content, call.Id);
 
-                eventSink.Output.Broadcast(new ToolResultEvent()
+                eventSink.Broadcast(new ToolResultEvent()
                 {
                     Call = call,
                     Result = result,

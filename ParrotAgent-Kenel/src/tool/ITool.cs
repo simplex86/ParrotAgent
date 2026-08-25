@@ -25,12 +25,12 @@ namespace ParrotAgent.Kenel
     public sealed record ToolResult(bool Success, string Content, string? Error = null)
     {
         /// <summary>
-        /// 便捷构造：成功结果。
+        /// 成功
         /// </summary>
         public static ToolResult Ok(string content) => new(true, content, null);
 
         /// <summary>
-        /// 便捷构造：失败结果。
+        /// 失败
         /// </summary>
         public static ToolResult Fail(string error) => new(false, string.Empty, error);
     }

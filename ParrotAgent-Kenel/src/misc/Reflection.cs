@@ -1,5 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.IO;
+using System.Linq;
 using System.Reflection;
 using System.Runtime.Loader;
 using System.Text;
@@ -51,7 +53,7 @@ namespace ParrotAgent.Kenel
         {
             var list = new List<Type>();
 
-            var assemblies = AppDomain.CurrentDomain.GetReferanceAssemblies();
+            var assemblies = AppDomain.CurrentDomain.GetReferenceAssemblies();
             foreach (var assembly in assemblies)
             {
                 var types = FindAll<TBase, TAttribute>(assembly);
@@ -75,7 +77,20 @@ namespace ParrotAgent.Kenel
             var baseType = typeof(TBase);
             var attrType = typeof(TAttribute);
 
-            var types = assembly.GetTypes();
+            Type[] types;
+            try
+            {
+                types = assembly.GetTypes();
+            }
+            catch (ReflectionTypeLoadException ex)
+            {
+                types = ex.Types.Where(t => t != null).ToArray(); // 即使部分类型因依赖缺失无法加载，仍使用已成功加载的部分类型继续
+            }
+            catch (FileNotFoundException)
+            {
+                return list; // 程序集本身无法加载其类型定义时，跳过该程序集
+            }
+
             foreach (var type in types)
             {
                 if (type.IsAbstract || type.IsInterface || type.IsEnum) continue;
@@ -96,7 +111,7 @@ namespace ParrotAgent.Kenel
         /// </summary>
         /// <param name="domain"></param>
         /// <returns></returns>
-        private static HashSet<Assembly> GetReferanceAssemblies(this AppDomain domain)
+        private static HashSet<Assembly> GetReferenceAssemblies(this AppDomain domain)
         {
             var hashset = new HashSet<Assembly>();
 
@@ -104,7 +119,7 @@ namespace ParrotAgent.Kenel
             foreach (var assembly in assemblies)
             {
                 hashset.Add(assembly);
-                GetReferanceAssemblies(assembly, hashset);
+                GetReferenceAssemblies(assembly, hashset);
             }
 
             return hashset;
@@ -115,16 +130,32 @@ namespace ParrotAgent.Kenel
         /// </summary>
         /// <param name="assembly"></param>
         /// <param name="hashset"></param>
-        private static void GetReferanceAssemblies(Assembly assembly, HashSet<Assembly> hashset)
+        private static void GetReferenceAssemblies(Assembly assembly, HashSet<Assembly> hashset)
         {
             var assemblyNames = assembly.GetReferencedAssemblies();
             foreach (var assemblyName in assemblyNames)
             {
-                var ass = Assembly.Load(assemblyName);
-                if (!hashset.Contains(ass))
+                Assembly ass;
+                try
                 {
-                    hashset.Add(ass);
-                    GetReferanceAssemblies(ass, hashset);
+                    ass = Assembly.Load(assemblyName);
+                }
+                catch (FileNotFoundException)
+                {
+                    continue;// 引用解析失败（如平台专属包/版本缺失/运行时不匹配），跳过
+                }
+                catch (FileLoadException)
+                {
+                    continue;
+                }
+                catch (BadImageFormatException)
+                {
+                    continue;// 非托管/格式不兼容的程序集，跳过
+                }
+
+                if (hashset.Add(ass))
+                {
+                    GetReferenceAssemblies(ass, hashset);
                 }
             }
         }

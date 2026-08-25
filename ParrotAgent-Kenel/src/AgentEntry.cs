@@ -1,6 +1,7 @@
 ﻿using System;
-using System.Linq;
 using System.Threading;
+using System.Threading.Tasks;
+using System.Linq;
 
 namespace ParrotAgent.Kenel
 {
@@ -30,25 +31,27 @@ namespace ParrotAgent.Kenel
         /// 
         /// </summary>
         /// <param name="cancellationToken"></param>
-        public AgentEntry(ToolRegistry toolRegistry, EventSink eventSink, CancellationToken cancellationToken)
+        public AgentEntry(ToolRegistry toolRegistry, CancellationToken cancellationToken)
         {
             this.chatProvider = new MockProvider();
             this.toolRegistry = toolRegistry;
-            this.eventSink = eventSink;
             this.cancellationToken = cancellationToken;
         }
 
         /// <summary>
         /// 启动
         /// </summary>
-        public void Run()
+        public async Task Run()
         {
             try
             {
+                eventSink = new EventSink();
+                eventSink.Collect();
+
                 var config = AgentConfigLoader.Load();
                 {
                     var provider = config.Providers.FirstOrDefault(p => p.Name == config.ActiveProvider);
-                    eventSink.Output.Broadcast(new AgentBeginEvent()
+                    eventSink.Broadcast(new AgentBeginEvent()
                     {
                         Provider = provider.Name,
                         Protocol = provider.Protocol,
@@ -60,7 +63,7 @@ namespace ParrotAgent.Kenel
                 chatProvider = Provider.CreateActive(config);
 
                 var agent = new Agent(chatProvider, toolRegistry, eventSink, cancellationToken);
-                agent.Run();
+                await agent.Run();
             }
             catch (Exception ex)
             {
