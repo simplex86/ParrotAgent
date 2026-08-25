@@ -20,16 +20,26 @@ namespace ParrotAgent.NUI
             Console.WriteLine();
             Console.ForegroundColor = ConsoleColor.Yellow;
             Console.WriteLine("The tool is about to be invoked.");
-            Console.WriteLine($"  Name: {evt.ToolCall.Name}");
-            Console.WriteLine($"  Args: {evt.ToolCall.Args}");
+            Console.WriteLine($"  Name: {evt.Call.Name}");
+            Console.WriteLine($"  Args: {evt.Call.Args}");
             Console.WriteLine("Do you allow to invoke?");
-            Console.WriteLine("1. Allow");
-            Console.WriteLine("2. Deny");
+            Console.WriteLine("  A. Allow");
+            Console.WriteLine("  D. Deny");
+            Console.ResetColor();
+            Console.ForegroundColor = ConsoleColor.Yellow;
+            Console.Write("Enter your choice: ");
             Console.ResetColor();
 
-            var option = Console.ReadLine();
+            var input = Console.ReadLine();
+            if (string.IsNullOrEmpty(input))
+            {
+                evt.TaskCompletionSource.SetResult(HitlOption.Deny);
+                AppData.CancellationTokenSource.Cancel();
+                return;
+            }
 
-            if (option == "1")
+            input = input.Trim().ToUpper();
+            if (input == "A")
             {
                 evt.TaskCompletionSource.SetResult(HitlOption.Allow);
             }

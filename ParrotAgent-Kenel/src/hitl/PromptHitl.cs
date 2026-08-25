@@ -39,7 +39,7 @@ namespace ParrotAgent.Kenel
             var taskCompletionSource = new TaskCompletionSource<HitlOption>();
             eventSink.Broadcast(new HitlEvent() 
             {
-                ToolCall = toolcall,
+                Call = toolcall,
                 TaskCompletionSource = taskCompletionSource 
             });
 

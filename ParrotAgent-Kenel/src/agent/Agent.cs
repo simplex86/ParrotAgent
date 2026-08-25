@@ -64,8 +64,6 @@ namespace ParrotAgent.Kenel
 
                 }
             }
-
-            eventSink.Broadcast(new AgentEndEvent());
         }
     }
 }

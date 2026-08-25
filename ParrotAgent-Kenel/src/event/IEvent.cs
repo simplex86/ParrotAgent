@@ -1,4 +1,5 @@
-﻿using System.Threading.Tasks;
+﻿using System.Threading;
+using System.Threading.Tasks;
 
 namespace ParrotAgent.Kenel
 {
@@ -23,8 +24,8 @@ namespace ParrotAgent.Kenel
     /// Agent终止
     /// </summary>
     public struct AgentEndEvent : IEvent 
-    { 
-    
+    {
+
     }
 
     /// <summary>
@@ -74,7 +75,7 @@ namespace ParrotAgent.Kenel
     /// </summary>
     public struct HitlEvent : IEvent
     {
-        public ToolCall ToolCall;
+        public ToolCall Call;
         public TaskCompletionSource<HitlOption> TaskCompletionSource;
     }
 }

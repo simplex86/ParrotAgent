@@ -31,9 +31,7 @@ namespace ParrotAgent.NUI
             var toolRegistry = new ToolRegistry();
             toolRegistry.Collect();
 
-            var cancellationTokenSource = new CancellationTokenSource();
-
-            var entry = new AgentEntry(toolRegistry, cancellationTokenSource.Token);
+            var entry = new AgentEntry(toolRegistry, AppData.CancellationTokenSource.Token);
             await entry.Run();
         }
     }

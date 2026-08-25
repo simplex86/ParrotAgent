@@ -17,7 +17,7 @@ namespace ParrotAgent.NUI
         /// <returns></returns>
         protected override async Task Process(AgentEndEvent evt)
         {
-            await Task.CompletedTask;
+            await AppData.CancellationTokenSource.CancelAsync();
         }
     }
 }
