@@ -5,12 +5,12 @@ using ParrotAgent.Kenel;
 namespace ParrotAgent.App
 {
     /// <summary>
-    /// 
+    /// 启动器
     /// </summary>
     internal class AgentLauncher
     {
         /// <summary>
-        /// 
+        /// 启动
         /// </summary>
         /// <returns></returns>
         public async Task Launch()
@@ -20,7 +20,7 @@ namespace ParrotAgent.App
                 Console.Clear();
 
                 var pluginLoader = new PluginLoader();
-                pluginLoader.Load();
+                if (!pluginLoader.Load()) return;
 
                 var types = Reflection.FindAll<IAgentApp, AgentAppAttribute>();
                 if (types.Count == 0)
