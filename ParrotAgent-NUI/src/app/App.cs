@@ -1,38 +1,35 @@
-﻿using ParrotAgent.Kenel;
-using System;
-using System.Threading;
+﻿using System;
+using System.Text;
 using System.Threading.Tasks;
+using ParrotAgent.Kenel;
 
 namespace ParrotAgent.NUI
 {
+
     /// <summary>
     /// 
     /// </summary>
-    internal class App
+    [AgentApp]
+    public class App : IAgentApp
     {
-        /// <summary>
-        /// 
-        /// </summary>
-        public App() 
-        {
-            
-        }
-
         /// <summary>
         /// 启动
         /// </summary>
         /// <returns></returns>
         public async Task Run()
         {
+            Console.Clear();
+
             Console.ForegroundColor = ConsoleColor.DarkGray;
             Console.WriteLine("Initializing...");
             Console.ResetColor();
 
-            var toolRegistry = new ToolRegistry();
-            toolRegistry.Collect();
-
-            var entry = new AgentEntry(toolRegistry, AppData.CancellationTokenSource.Token);
-            await entry.Run();
+            Console.OutputEncoding = Encoding.UTF8;
+            {
+                var entry = new AgentEntry(AppData.CancellationTokenSource.Token);
+                await entry.Run();
+            }
+            Console.ResetColor();
         }
     }
 }

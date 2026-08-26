@@ -3,13 +3,10 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Reflection;
-using System.Runtime.Loader;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace ParrotAgent.Kenel
 {
-    internal static class Reflection
+    public static class Reflection
     {
         /// <summary>
         /// 实例化T类型的对象

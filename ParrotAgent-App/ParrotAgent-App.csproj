@@ -1,11 +1,14 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
+    <OutputType>Exe</OutputType>
     <TargetFramework>net8.0</TargetFramework>
-    <RootNamespace>ParrotAgent_OpenAI</RootNamespace>
+    <RootNamespace>ParrotAgent.App</RootNamespace>
     <ImplicitUsings>disable</ImplicitUsings>
     <Nullable>enable</Nullable>
-    <BaseOutputPath>..\bin</BaseOutputPath>
+	<!-- dotnet run 时工作目录设为项目目录，使 .parrotagent.yaml 能被三级发现命中 -->
+	<RunWorkingDirectory>$(MSBuildProjectDirectory)</RunWorkingDirectory>
+	<BaseOutputPath>..\bin</BaseOutputPath>
   </PropertyGroup>
 
   <ItemGroup>

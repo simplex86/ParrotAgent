@@ -13,23 +13,14 @@ namespace ParrotAgent.Kenel
         /// <summary>
         /// 
         /// </summary>
-        private ToolRegistry toolRegistry;
-        /// <summary>
-        /// 
-        /// </summary>
-        private EventSink eventSink;
-        /// <summary>
-        /// 
-        /// </summary>
         private CancellationToken cancellationToken;
 
         /// <summary>
         /// 
         /// </summary>
         /// <param name="cancellationToken"></param>
-        public AgentEntry(ToolRegistry toolRegistry, CancellationToken cancellationToken)
+        public AgentEntry(CancellationToken cancellationToken)
         {
-            this.toolRegistry = toolRegistry;
             this.cancellationToken = cancellationToken;
         }
 
@@ -40,25 +31,27 @@ namespace ParrotAgent.Kenel
         {
             try
             {
-                eventSink = new EventSink();
+                var toolRegistry = new ToolRegistry();
+                toolRegistry.Collect();
+
+                var eventSink = new EventSink();
                 eventSink.Collect();
 
                 var config = AgentConfigLoader.Load();
                 {
-                    var provider = config.Providers.FirstOrDefault(p => p.Name == config.ActiveProvider);
+                    var providerConfig = config.Providers.FirstOrDefault(p => p.Name == config.ActiveProvider);
                     eventSink.Broadcast(new AgentBeginEvent()
                     {
-                        Provider = provider.Name,
-                        Protocol = provider.Protocol,
+                        Provider = providerConfig.Name,
+                        Protocol = providerConfig.Protocol,
                         ContextWindowTokens = config.Context.ContextWindowTokens,
                         ToolCount = toolRegistry.Count,
                     });
 
-                    Schema.Init(provider);
+                    Schema.Init(providerConfig);
                 }
 
-                var chatProvider = Provider.CreateActive(config);
-
+                var provider = Provider.CreateActive(config);
                 var contextConfig = config.Context ?? new ContextConfig();
 
                 var truncateConfig = new TruncateConfig
@@ -68,7 +61,7 @@ namespace ParrotAgent.Kenel
                     PreviewLength = contextConfig.PreviewLength ?? 2_000,
                 };
 
-                var compressor = new Compressor(chatProvider, 
+                var compressor = new Compressor(provider, 
                                                 contextConfig.ContextWindowTokens, 
                                                 truncateConfig, 
                                                 contextConfig.WarningFraction ?? 0.7, 
@@ -77,7 +70,7 @@ namespace ParrotAgent.Kenel
                                                 contextConfig.MaxCircuitFailures ?? 2, 
                                                 contextConfig.EnableAutoCompress ?? true);
 
-                var agent = new Agent(chatProvider, toolRegistry, eventSink, compressor, cancellationToken);
+                var agent = new Agent(provider, toolRegistry, eventSink, compressor, cancellationToken);
                 await agent.Run();
             }
             catch (Exception ex)
