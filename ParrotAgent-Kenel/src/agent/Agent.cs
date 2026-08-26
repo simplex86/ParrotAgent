@@ -32,13 +32,13 @@ namespace ParrotAgent.Kenel
         /// </summary>
         /// <param name="chatProvider"></param>
         /// <param name="cancellationToken"></param>
-        public Agent(IProtocolProvider chatProvider, ToolRegistry toolRegistry, EventSink eventSink, CancellationToken cancellationToken)
+        public Agent(IProtocolProvider chatProvider, ToolRegistry toolRegistry, EventSink eventSink, Compressor compressor, CancellationToken cancellationToken)
         {
             var executor = new ToolExecutor(toolRegistry);
             var hitl = new PromptHitl(eventSink);
             var batchExecutor = new BatchToolExecutor(executor, hitl);
 
-            this.agentLoop = new AgentLoop(chatProvider, toolRegistry, batchExecutor, eventSink);
+            this.agentLoop = new AgentLoop(chatProvider, toolRegistry, batchExecutor, eventSink, compressor);
             this.eventSink = eventSink;
             this.cancellationToken = cancellationToken;
         }

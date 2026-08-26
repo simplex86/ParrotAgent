@@ -8,17 +8,17 @@ namespace ParrotAgent.NUI
     /// 
     /// </summary>
     [EventHandler]
-    public class AgentBeignHandler : AEventHandler<AgentBeginEvent>
+    public class ContextCompressingHandler : AEventHandler<ContextCompressingEvent>
     {
         /// <summary>
         /// 
         /// </summary>
         /// <param name="evt"></param>
         /// <returns></returns>
-        protected override async Task Process(AgentBeginEvent evt)
+        protected override async Task Process(ContextCompressingEvent evt)
         {
             Console.ForegroundColor = ConsoleColor.DarkGray;
-            Console.WriteLine($"Provider = {evt.Provider}, Protocol = {evt.Protocol}, ContextWindowSize = {evt.ContextWindowTokens}, Tools = {evt.ToolCount}");
+            Console.WriteLine("Compressing...");
             Console.ResetColor();
 
             await Task.CompletedTask;

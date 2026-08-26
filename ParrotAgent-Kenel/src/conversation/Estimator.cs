@@ -8,7 +8,7 @@ namespace ParrotAgent.Kenel
     /// 英文约 4 char/token，中文约 1-2 char/token，取 3 是跨语言折中近似。
     /// 仅供上下文占比估算与日志展示，不用于计费或精确截断。
     /// </summary>
-    public static class TokenEstimator
+    public static class Estimator
     {
         /// <summary>
         /// 
@@ -39,7 +39,7 @@ namespace ParrotAgent.Kenel
         /// <summary>
         /// 估算纯文本的 token 数。空字符串返回 0。
         /// </summary>
-        private static int Estimate(string? text)
+        public static int Estimate(string? text)
         {
             if (string.IsNullOrEmpty(text)) return 0;
             // 向上取整：1-3 字符算 1 token，4-6 字符算 2 tokens...

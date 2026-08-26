@@ -13,10 +13,6 @@ namespace ParrotAgent.Kenel
         /// <summary>
         /// 
         /// </summary>
-        private IProtocolProvider chatProvider;
-        /// <summary>
-        /// 
-        /// </summary>
         private ToolRegistry toolRegistry;
         /// <summary>
         /// 
@@ -33,7 +29,6 @@ namespace ParrotAgent.Kenel
         /// <param name="cancellationToken"></param>
         public AgentEntry(ToolRegistry toolRegistry, CancellationToken cancellationToken)
         {
-            this.chatProvider = new MockProvider();
             this.toolRegistry = toolRegistry;
             this.cancellationToken = cancellationToken;
         }
@@ -55,14 +50,34 @@ namespace ParrotAgent.Kenel
                     {
                         Provider = provider.Name,
                         Protocol = provider.Protocol,
+                        ContextWindowTokens = config.Context.ContextWindowTokens,
                         ToolCount = toolRegistry.Count,
                     });
 
                     Schema.Init(provider);
                 }
-                chatProvider = Provider.CreateActive(config);
 
-                var agent = new Agent(chatProvider, toolRegistry, eventSink, cancellationToken);
+                var chatProvider = Provider.CreateActive(config);
+
+                var contextConfig = config.Context ?? new ContextConfig();
+
+                var truncateConfig = new TruncateConfig
+                {
+                    PerResultThreshold = contextConfig.PerResultThreshold ?? 50_000,
+                    RoundTotalThreshold = contextConfig.RoundTotalThreshold ?? 200_000,
+                    PreviewLength = contextConfig.PreviewLength ?? 2_000,
+                };
+
+                var compressor = new Compressor(chatProvider, 
+                                                contextConfig.ContextWindowTokens, 
+                                                truncateConfig, 
+                                                contextConfig.WarningFraction ?? 0.7, 
+                                                contextConfig.TriggerFraction ?? 0.9, 
+                                                contextConfig.KeepRecentMessages ?? 4, 
+                                                contextConfig.MaxCircuitFailures ?? 2, 
+                                                contextConfig.EnableAutoCompress ?? true);
+
+                var agent = new Agent(chatProvider, toolRegistry, eventSink, compressor, cancellationToken);
                 await agent.Run();
             }
             catch (Exception ex)

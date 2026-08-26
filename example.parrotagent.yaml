@@ -1,4 +1,4 @@
-# ParrotAgent.Net 配置示例。
+# ParrotAgent 配置示例。
 # 复制为 .parrotagent.yaml 后按需修改。
 # .parrotagent.yaml 已被 .gitignore 忽略，不会被提交。
 #
@@ -31,3 +31,15 @@ providers:
     model: claude-3-5-sonnet-20241022
     base_url: https://api.anthropic.com
     api_key: ${ANTHROPIC_API_KEY}
+
+# 上下文管理配置（全部可选，省略时用默认值）
+context:
+  context_window_tokens: 64000    # 上下文窗口大小
+  warning_fraction: 0.7           # token 占比超过此值发警告
+  trigger_fraction: 0.9           # token 占比超过此值触发摘要
+  per_result_threshold: 50000     # 单条工具结果截断阈值（字符数）
+  round_total_threshold: 200000   # 一轮内工具结果合计截断阈值（字符数）
+  preview_length: 2000            # 截断后保留预览长度（字符数）
+  keep_recent_messages: 4         # 摘要时保留的最近消息数
+  max_circuit_failures: 2         # 熔断器最大连续失败次数
+  enable_auto_compress: true      # 是否启用自动压缩（false 时仅截断不摘要）

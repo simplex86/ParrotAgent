@@ -14,12 +14,7 @@ namespace ParrotAgent.Kenel
         private List<IMessage> history = new List<IMessage>();
 
         /// <summary>
-        /// 估算的全部历史 token 数（字符数 / 3 近似）。
-        /// </summary>
-        public int EstimatedTokens => TokenEstimator.Estimate(history);
-
-        /// <summary>
-        /// 追加 user 消息。
+        /// 追加 user 消息
         /// </summary>
         public void AddUser(string content)
         {
@@ -28,7 +23,7 @@ namespace ParrotAgent.Kenel
         }
 
         /// <summary>
-        /// 追加 assistant 消息（AI 的完整回复）。
+        /// 追加 assistant 消息（AI 的完整回复）
         /// </summary>
         public void AddAssistant(string content)
         {
@@ -37,7 +32,7 @@ namespace ParrotAgent.Kenel
         }
 
         /// <summary>
-        /// 追加 assistant 消息（AI 的完整回复）。
+        /// 追加 assistant 消息（AI 的完整回复）
         /// </summary>
         public void AddAssistant(string content, IReadOnlyList<ToolCall> toolcalls)
         {
@@ -54,6 +49,17 @@ namespace ParrotAgent.Kenel
             ArgumentNullException.ThrowIfNull(content);
             ArgumentNullException.ThrowIfNull(callId);
             history.Add(new ToolMessage(content, callId));
+        }
+
+        /// <summary>
+        /// 替换全部消息
+        /// 供 Summarizer.Summarize 调用
+        /// </summary>
+        public void ReplaceMessages(IReadOnlyList<IMessage> messages)
+        {
+            ArgumentNullException.ThrowIfNull(messages);
+            history.Clear();
+            history.AddRange(messages);
         }
 
         /// <summary>

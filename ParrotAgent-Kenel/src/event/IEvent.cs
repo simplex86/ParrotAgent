@@ -17,6 +17,7 @@ namespace ParrotAgent.Kenel
     {
         public string Provider;
         public string Protocol;
+        public int? ContextWindowTokens;
         public int ToolCount;
     }
 
@@ -77,5 +78,31 @@ namespace ParrotAgent.Kenel
     {
         public ToolCall Call;
         public TaskCompletionSource<HitlOption> TaskCompletionSource;
+    }
+
+    /// <summary>
+    /// 
+    /// </summary>
+    public struct ContextWarningEvent : IEvent
+    {
+        public string Message;
+    }
+
+    /// <summary>
+    /// 
+    /// </summary>
+    public struct ContextCompressingEvent : IEvent
+    {
+
+    }
+
+    /// <summary>
+    /// 
+    /// </summary>
+    public struct ContextCompressedEvent : IEvent
+    {
+        public bool WasCompressed;
+        public int MessagesCompressed;
+        public int TokensSaved;
     }
 }
