@@ -11,7 +11,7 @@ namespace ParrotAgent.Tool
     /// 
     /// </summary>
     [Tool]
-    public class GetOSTool : ITool
+    public sealed class GetOSTool : ITool
     {
         /// <summary>
         /// 
