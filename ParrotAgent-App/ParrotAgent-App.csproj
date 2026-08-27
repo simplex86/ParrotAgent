@@ -8,11 +8,12 @@
     <Nullable>enable</Nullable>
 	<!-- dotnet run 时工作目录设为项目目录，使 .parrotagent.yaml 能被三级发现命中 -->
 	<RunWorkingDirectory>$(MSBuildProjectDirectory)</RunWorkingDirectory>
-	<BaseOutputPath>..\bin</BaseOutputPath>
+	<BaseOutputPath>..\bin\</BaseOutputPath>
   </PropertyGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\ParrotAgent-Kenel\ParrotAgent-Kenel.csproj" />
+    <ProjectReference Include="..\ParrotAgent-Kenel\ParrotAgent-Kernel.csproj" />
+    <ProjectReference Include="..\ParrotAgent-Kernel\ParrotAgent-Kernel.csproj" />
   </ItemGroup>
 
 </Project>

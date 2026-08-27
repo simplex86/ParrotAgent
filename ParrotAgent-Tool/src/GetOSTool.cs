@@ -3,14 +3,14 @@ using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Text.Json;
-using ParrotAgent.Kenel;
+using ParrotAgent.Kernel;
 
 namespace ParrotAgent.Tool
 {
     /// <summary>
     /// 
     /// </summary>
-    [Tool]
+    [Tool(ToolCategory.Read, ToolSafety.Safe)]
     public sealed class GetOSTool : ITool
     {
         /// <summary>

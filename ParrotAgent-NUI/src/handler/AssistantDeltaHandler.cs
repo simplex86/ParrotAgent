@@ -1,6 +1,6 @@
 ﻿using System;
 using System.Threading.Tasks;
-using ParrotAgent.Kenel;
+using ParrotAgent.Kernel;
 
 namespace ParrotAgent.NUI
 {

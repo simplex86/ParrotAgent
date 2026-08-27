@@ -5,7 +5,7 @@ using System.Text;
 using System.Text.Json;
 using System.Threading;
 using System.Threading.Tasks;
-using ParrotAgent.Kenel;
+using ParrotAgent.Kernel;
 
 namespace ParrotAgent.Tool
 {
@@ -15,7 +15,7 @@ namespace ParrotAgent.Tool
     /// 多次匹配：报"找到 N 处"，附前 3 处匹配的行号 + 上下文
     /// 这是 Agent 自我修正能力的关键约束——多次匹配意味着 LLM 的描述不够精确，应让它重试或提供更多上下文（如带行号或更多周边代码）
     /// </summary>
-    [Tool]
+    [Tool(ToolCategory.Write)]
     public sealed class EditFileTool : ITool
     {
         private const int ContextPreviewLength = 200;

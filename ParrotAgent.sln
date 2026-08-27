@@ -3,8 +3,6 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio Version 18
 VisualStudioVersion = 18.9.12105.275
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ParrotAgent-Kenel", "ParrotAgent-Kenel\ParrotAgent-Kenel.csproj", "{0DC0355B-002E-4A19-8411-86EF1F312DE5}"
-EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ParrotAgent-NUI", "ParrotAgent-NUI\ParrotAgent-NUI.csproj", "{703F3E49-5334-4F05-AA66-DD719E9FEB06}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ParrotAgent-Tool", "ParrotAgent-Tool\ParrotAgent-Tool.csproj", "{AC61EC5E-CB10-437B-91B4-0AA69EFA3153}"
@@ -13,16 +11,14 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ParrotAgent-OpenAI", "Parro
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ParrotAgent-App", "ParrotAgent-App\ParrotAgent-App.csproj", "{4CE9BAC6-F8A6-4596-96E2-5A57A59A84C2}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ParrotAgent-Kernel", "ParrotAgent-Kernel\ParrotAgent-Kernel.csproj", "{C04F0609-CD1A-6D85-034B-ED212B869117}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
 		Release|Any CPU = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(ProjectConfigurationPlatforms) = postSolution
-		{0DC0355B-002E-4A19-8411-86EF1F312DE5}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{0DC0355B-002E-4A19-8411-86EF1F312DE5}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{0DC0355B-002E-4A19-8411-86EF1F312DE5}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{0DC0355B-002E-4A19-8411-86EF1F312DE5}.Release|Any CPU.Build.0 = Release|Any CPU
 		{703F3E49-5334-4F05-AA66-DD719E9FEB06}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{703F3E49-5334-4F05-AA66-DD719E9FEB06}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{703F3E49-5334-4F05-AA66-DD719E9FEB06}.Release|Any CPU.ActiveCfg = Release|Any CPU
@@ -39,6 +35,10 @@ Global
 		{4CE9BAC6-F8A6-4596-96E2-5A57A59A84C2}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{4CE9BAC6-F8A6-4596-96E2-5A57A59A84C2}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{4CE9BAC6-F8A6-4596-96E2-5A57A59A84C2}.Release|Any CPU.Build.0 = Release|Any CPU
+		{C04F0609-CD1A-6D85-034B-ED212B869117}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{C04F0609-CD1A-6D85-034B-ED212B869117}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{C04F0609-CD1A-6D85-034B-ED212B869117}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{C04F0609-CD1A-6D85-034B-ED212B869117}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

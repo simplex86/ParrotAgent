@@ -4,16 +4,16 @@ using System.IO;
 using System.Text.Json;
 using System.Threading;
 using System.Threading.Tasks;
-using ParrotAgent.Kenel;
+using ParrotAgent.Kernel;
 
 namespace ParrotAgent.Tool.src
 {
     /// <summary>
-    /// 文件名模式匹配工具。Category=Read（幂等、可并发）。
+    /// 文件名模式匹配工具。
     /// 参数：pattern（glob 模式，如 *.cs）+ path（搜索根目录，默认当前目录）。
     /// 递归搜索匹配文件，返回相对路径列表（按路径排序，最多 200 条）。
     /// </summary>
-    [Tool]
+    [Tool(ToolCategory.Read, ToolSafety.Safe)]
     public sealed class GlobTool : ITool
     {
         private const int MaxResults = 200;

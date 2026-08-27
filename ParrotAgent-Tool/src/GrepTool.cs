@@ -5,7 +5,7 @@ using System.Text.Json;
 using System.Text.RegularExpressions;
 using System.Threading;
 using System.Threading.Tasks;
-using ParrotAgent.Kenel;
+using ParrotAgent.Kernel;
 
 namespace ParrotAgent.Tool
 {
@@ -14,7 +14,7 @@ namespace ParrotAgent.Tool
     /// 参数：pattern（正则）+ path（搜索目录，默认当前）+ include（文件名 glob 过滤，如 *.cs）
     /// 逐文件逐行搜索，返回匹配的 文件:行号:行内容 列表（最多 100 条）
     /// </summary>
-    [Tool]
+    [Tool(ToolCategory.Read, ToolSafety.Safe)]
     public sealed class GrepTool : ITool
     {
         public const int MaxMatches = 100;

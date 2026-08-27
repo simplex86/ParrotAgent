@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 using System.Text;
 using System.Text.Json;
 using System.Diagnostics;
-using ParrotAgent.Kenel;
+using ParrotAgent.Kernel;
 
 namespace ParrotAgent.Tool
 {
@@ -16,7 +16,7 @@ namespace ParrotAgent.Tool
     /// 用 Process.Start + 重定向 stdout/stderr。
     /// 本迭代不接安全层——黑名单拦截在迭代 8。
     /// </summary>
-    [Tool]
+    [Tool(ToolCategory.Write)]
     public sealed class RunCommandTool : ITool
     {
         private const int DefaultTimeoutSeconds = 30;

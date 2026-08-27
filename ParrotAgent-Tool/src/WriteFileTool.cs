@@ -5,7 +5,7 @@ using System.Text;
 using System.Text.Json;
 using System.Threading;
 using System.Threading.Tasks;
-using ParrotAgent.Kenel;
+using ParrotAgent.Kernel;
 
 namespace ParrotAgent.Tool
 {
@@ -13,7 +13,7 @@ namespace ParrotAgent.Tool
     /// 写文件工具：创建或覆盖写入指定路径
     /// 父目录不存在时自动创建
     /// </summary>
-    [Tool]
+    [Tool(ToolCategory.Write)]
     public sealed class WriteFileTool : ITool
     {
         /// <summary>

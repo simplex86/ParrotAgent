@@ -1,4 +1,4 @@
-﻿using ParrotAgent.Kenel;
+﻿using ParrotAgent.Kernel;
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -13,7 +13,7 @@ namespace ParrotAgent.Tool
     /// <summary>
     /// 读文件工具：读取指定路径的文件内容，返回完整文本
     /// </summary>
-    [Tool]
+    [Tool(ToolCategory.Read, ToolSafety.Safe)]
     public sealed class ReadFileTool : ITool
     {
         /// <summary>
