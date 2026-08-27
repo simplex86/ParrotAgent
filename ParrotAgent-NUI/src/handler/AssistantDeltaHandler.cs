@@ -17,7 +17,9 @@ namespace ParrotAgent.NUI
         /// <returns></returns>
         protected override async Task Process(AssistantDeltaEvent evt)
         {
+            Console.ResetColor();
             Console.Write(evt.Delta);
+
             await Task.CompletedTask;
         }
     }

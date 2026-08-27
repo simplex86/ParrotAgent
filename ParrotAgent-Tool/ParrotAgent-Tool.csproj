@@ -9,7 +9,6 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\ParrotAgent-Kenel\ParrotAgent-Kernel.csproj" />
     <ProjectReference Include="..\ParrotAgent-Kernel\ParrotAgent-Kernel.csproj" />
   </ItemGroup>
 

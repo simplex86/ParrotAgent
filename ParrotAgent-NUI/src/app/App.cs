@@ -5,7 +5,6 @@ using ParrotAgent.Kernel;
 
 namespace ParrotAgent.NUI
 {
-
     /// <summary>
     /// 
     /// </summary>
@@ -26,7 +25,7 @@ namespace ParrotAgent.NUI
 
             Console.OutputEncoding = Encoding.UTF8;
             {
-                var entry = new AgentEntry(AppData.CancellationTokenSource.Token);
+                var entry = new AgentEntry(AppContext.CancellationTokenSource.Token);
                 await entry.Run();
             }
             Console.ResetColor();

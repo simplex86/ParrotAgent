@@ -4,14 +4,22 @@ using System.Collections.Generic;
 namespace ParrotAgent.Kernel
 {
     /// <summary>
+    /// 
+    /// </summary>
+    public interface IConversation
+    {
+        IReadOnlyList<IMessage> ToProviderMessages();
+    }
+
+    /// <summary>
     /// 对话记录
     /// </summary>
-    internal class Conversation
+    internal class Conversation : IConversation
     {
         /// <summary>
         /// 历史信息
         /// </summary>
-        private List<IMessage> history = new List<IMessage>();
+        private List<IMessage> messages = new List<IMessage>();
 
         /// <summary>
         /// 追加 user 消息
@@ -19,7 +27,7 @@ namespace ParrotAgent.Kernel
         public void AddUser(string content)
         {
             ArgumentNullException.ThrowIfNull(content);
-            history.Add(new UserMessage(content));
+            messages.Add(new UserMessage(content));
         }
 
         /// <summary>
@@ -28,7 +36,7 @@ namespace ParrotAgent.Kernel
         public void AddAssistant(string content)
         {
             ArgumentNullException.ThrowIfNull(content);
-            history.Add(new AssistantMessage(content));
+            messages.Add(new AssistantMessage(content));
         }
 
         /// <summary>
@@ -38,7 +46,7 @@ namespace ParrotAgent.Kernel
         {
             ArgumentNullException.ThrowIfNull(content);
             ArgumentNullException.ThrowIfNull(toolcalls);
-            history.Add(new AssistantMessage(content) { ToolCalls = toolcalls});
+            messages.Add(new AssistantMessage(content) { ToolCalls = toolcalls});
         }
 
         /// <summary>
@@ -48,7 +56,7 @@ namespace ParrotAgent.Kernel
         {
             ArgumentNullException.ThrowIfNull(content);
             ArgumentNullException.ThrowIfNull(callId);
-            history.Add(new ToolMessage(content, callId));
+            messages.Add(new ToolMessage(content, callId));
         }
 
         /// <summary>
@@ -58,8 +66,8 @@ namespace ParrotAgent.Kernel
         public void ReplaceMessages(IReadOnlyList<IMessage> messages)
         {
             ArgumentNullException.ThrowIfNull(messages);
-            history.Clear();
-            history.AddRange(messages);
+            this.messages.Clear();
+            this.messages.AddRange(messages);
         }
 
         /// <summary>
@@ -68,7 +76,7 @@ namespace ParrotAgent.Kernel
         /// <returns></returns>
         public IReadOnlyList<IMessage> ToProviderMessages()
         {
-            return history;
+            return messages;
         }
     }
 }

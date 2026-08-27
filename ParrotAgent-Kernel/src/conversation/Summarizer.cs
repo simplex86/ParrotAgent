@@ -19,6 +19,9 @@ namespace ParrotAgent.Kernel
         public string? Error { get; init; }
     }
 
+    /// <summary>
+    /// 摘要器
+    /// </summary>
     internal class Summarizer
     {
         private readonly IProtocolProvider provider;
@@ -28,7 +31,9 @@ namespace ParrotAgent.Kernel
         private readonly int keepRecent;
         private readonly Breaker breaker;
 
-        // 9 段结构化摘要 Prompt（首尾强调禁止工具调用 + draft 两步走）
+        /// <summary>
+        /// 9 段结构化摘要 Prompt（首尾强调禁止工具调用 + draft 两步走）
+        /// </summary>
         private const string SummaryPrompt = """
             你是一个对话摘要生成器。**只生成摘要，不要调用任何工具。**
 
@@ -73,6 +78,16 @@ namespace ParrotAgent.Kernel
             "如果你需要某个文件的完整内容或某段具体代码，请使用 read_file 或 grep " +
             "重新读取，不要根据摘要脑补不存在的细节。";
 
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="provider"></param>
+        /// <param name="contextWindowTokens"></param>
+        /// <param name="warningFraction"></param>
+        /// <param name="triggerFraction"></param>
+        /// <param name="keepRecent"></param>
+        /// <param name="maxCircuitFailures"></param>
+        /// <exception cref="ArgumentNullException"></exception>
         public Summarizer(IProtocolProvider provider,
                           int contextWindowTokens,
                           double warningFraction = 0.7,
@@ -94,21 +109,25 @@ namespace ParrotAgent.Kernel
         public bool BreakerOpen => breaker.IsOpen;
         public int BreakerFailures => breaker.FailureCount;
 
+        /// <summary>
+        /// 
+        /// </summary>
         public void ResetBreaker() => breaker.Reset();
 
         /// <summary>
-        /// 是否需要发警告（token > 警告阈值）。
+        /// 是否需要发警告（token > 警告阈值）
         /// </summary>
         public bool NeedsWarning(IReadOnlyList<IMessage> messages) => Estimator.Estimate(messages) > warningThreshold;
 
         /// <summary>
-        /// 是否需要触发摘要（token > 触发阈值）。
+        /// 是否需要触发摘要（token > 触发阈值）
         /// </summary>
         public bool NeedsCompression(IReadOnlyList<IMessage> messages) => Estimator.Estimate(messages) > triggerThreshold;
 
         /// <summary>
-        /// 生成结构化摘要，替换历史中的旧消息。
-        /// 返回 SummaryResult。失败时熔断器递增，历史不变。
+        /// 生成结构化摘要，替换历史中的旧消息
+        /// 返回 SummaryResult
+        /// 失败时熔断器递增，历史不变
         /// </summary>
         public async Task<SummaryResult> Summarize(Conversation conversation, CancellationToken cancellationToken)
         {
@@ -186,7 +205,7 @@ namespace ParrotAgent.Kernel
         }
 
         /// <summary>
-        /// 从 LLM 输出中去除 draft 块，提取正式摘要。
+        /// 从 LLM 输出中去除 draft 块，提取正式摘要
         /// </summary>
         internal static string ExtractFormalSummary(string raw)
         {
@@ -211,7 +230,7 @@ namespace ParrotAgent.Kernel
         }
 
         /// <summary>
-        /// 格式化消息列表供摘要 Prompt 使用（每条截断 3000 字符）。
+        /// 格式化消息列表供摘要 Prompt 使用（每条截断 3000 字符）
         /// </summary>
         private static string FormatForSummary(IReadOnlyList<IMessage> messages)
         {

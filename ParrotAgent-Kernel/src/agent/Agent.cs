@@ -18,11 +18,19 @@ namespace ParrotAgent.Kernel
         /// <summary>
         /// 
         /// </summary>
-        private Conversation conversation = new Conversation();
+        private Conversation conversation = null;
         /// <summary>
         /// 
         /// </summary>
-        private EventSink eventSink;
+        private Compressor compressor;
+        /// <summary>
+        /// 
+        /// </summary>
+        private CommandExecutor commandExecutor;
+        /// <summary>
+        /// 
+        /// </summary>
+        private EventDispatcher eventDispatcher;
         /// <summary>
         /// 
         /// </summary>
@@ -32,15 +40,23 @@ namespace ParrotAgent.Kernel
         /// 
         /// </summary>
         /// <param name="chatProvider"></param>
+        /// <param name="toolRegistry"></param>
+        /// <param name="commandRegistry"></param>
+        /// <param name="eventDispatcher"></param>
+        /// <param name="compressor"></param>
         /// <param name="cancellationToken"></param>
-        public Agent(IProtocolProvider chatProvider, ToolRegistry toolRegistry, EventSink eventSink, Compressor compressor, CancellationToken cancellationToken)
+        public Agent(IProtocolProvider chatProvider, 
+                     ToolRegistry toolRegistry, 
+                     CommandRegistry commandRegistry, 
+                     EventDispatcher eventDispatcher, 
+                     Compressor compressor, 
+                     CancellationToken cancellationToken)
         {
-            var tooExecutor = new ToolExecutor(toolRegistry);
-            var hitl = new PromptHitl(eventSink);
-            var batchExecutor = new BatchToolExecutor(toolRegistry, tooExecutor, hitl);
-
-            this.agentLoop = new AgentLoop(chatProvider, toolRegistry, batchExecutor, eventSink, compressor);
-            this.eventSink = eventSink;
+            this.compressor = compressor;
+            this.agentLoop = new AgentLoop(chatProvider, toolRegistry, eventDispatcher, compressor);
+            this.conversation = new Conversation();
+            this.commandExecutor = new CommandExecutor(commandRegistry);
+            this.eventDispatcher = eventDispatcher;
             this.cancellationToken = cancellationToken;
         }
 
@@ -55,10 +71,20 @@ namespace ParrotAgent.Kernel
                 try
                 {
                     var taskCompletionSource = new TaskCompletionSource<string>();
-                    eventSink.Broadcast(new UserPromptEvent() { TaskCompletionSource = taskCompletionSource });
-                    var prompt = await taskCompletionSource.Task;
+                    await eventDispatcher.Dispatch(new UserPromptEvent() { TaskCompletionSource = taskCompletionSource });
+                    var input = await taskCompletionSource.Task;
 
-                    conversation.AddUser(prompt);
+                    var commandResult = await ExecuteCommand(input);
+                    if (commandResult.Handled)
+                    {
+                        if (!string.IsNullOrEmpty(commandResult.Output))
+                        {
+                            await eventDispatcher.Dispatch(new CommandResultEvent() { Result = commandResult });
+                        }
+                        continue; // 是命令且已经被处理，不再灌给LLM
+                    }
+
+                    conversation.AddUser(input);
                     await agentLoop.Run(conversation, true, cancellationToken);
                 }
                 catch (Exception ex)
@@ -66,6 +92,17 @@ namespace ParrotAgent.Kernel
                     Trace.TraceError(ex.Message);
                 }
             }
+        }
+
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="input"></param>
+        /// <returns></returns>
+        private async Task<CommandResult> ExecuteCommand(string input)
+        {
+            var context = new CommandContext(conversation, compressor, cancellationToken);
+            return await commandExecutor.Execute(input, context, cancellationToken);
         }
     }
 }

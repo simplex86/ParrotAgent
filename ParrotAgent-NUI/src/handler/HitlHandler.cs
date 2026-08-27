@@ -34,7 +34,7 @@ namespace ParrotAgent.NUI
             if (string.IsNullOrEmpty(input))
             {
                 evt.TaskCompletionSource.SetResult(HitlOption.Deny);
-                AppData.CancellationTokenSource.Cancel();
+                AppContext.CancellationTokenSource.Cancel();
                 return;
             }
 

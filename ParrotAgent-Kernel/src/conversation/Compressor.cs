@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Runtime.CompilerServices;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -9,12 +8,27 @@ namespace ParrotAgent.Kernel
     /// <summary>
     /// 压缩结果
     /// </summary>
-    internal sealed record CompressionResult
+    public sealed record CompressionResult
     {
+        /// <summary>
+        /// 
+        /// </summary>
         public bool WasCompressed { get; init; }
+        /// <summary>
+        /// 
+        /// </summary>
         public int MessagesCompressed { get; init; }
+        /// <summary>
+        /// 
+        /// </summary>
         public int EstimatedTokensSaved { get; init; }
+        /// <summary>
+        /// 
+        /// </summary>
         public string? Message { get; init; }
+        /// <summary>
+        /// 
+        /// </summary>
         public bool BreakerOpen { get; init; }
     }
 
@@ -32,9 +46,23 @@ namespace ParrotAgent.Kernel
     }
 
     /// <summary>
+    /// 
+    /// </summary>
+    public interface ICompressor
+    {
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="conversation"></param>
+        /// <param name="cancellationToken"></param>
+        /// <returns></returns>
+        Task<CompressionResult> Compress(IConversation conversation, CancellationToken cancellationToken);
+    }
+
+    /// <summary>
     /// Token 压缩器
     /// </summary>
-    internal sealed class Compressor
+    internal sealed class Compressor : ICompressor
     {
         private readonly Truncator truncator;
         private readonly Summarizer summarizer;
@@ -65,11 +93,11 @@ namespace ParrotAgent.Kernel
         {
             truncator = new Truncator(truncateConfig, projectRoot);
             summarizer = new Summarizer(provider,
-                                                   contextWindowTokens,
-                                                   warningFraction,
-                                                   triggerFraction,
-                                                   keepRecent,
-                                                   maxCircuitFailures);
+                                        contextWindowTokens,
+                                        warningFraction,
+                                        triggerFraction,
+                                        keepRecent,
+                                        maxCircuitFailures);
             this.enableAutoCompress = enableAutoCompress;
         }
 
@@ -79,14 +107,28 @@ namespace ParrotAgent.Kernel
         /// <param name="contents"></param>
         /// <param name="toolnames"></param>
         /// <returns></returns>
-
         public (string[] TruncatedContents, IReadOnlyList<TruncationInfo> Infos) TruncateBatch(IReadOnlyList<string> contents, IReadOnlyList<string> toolnames)
             => truncator.TruncateBatch(contents, toolnames);
 
+        /// <summary>
+        /// 
+        /// </summary>
         public int ContextWindow => summarizer.ContextWindow;
+        /// <summary>
+        /// 
+        /// </summary>
         public int WarningThreshold => summarizer.WarningThreshold;
+        /// <summary>
+        /// 
+        /// </summary>
         public int TriggerThreshold => summarizer.TriggerThreshold;
+        /// <summary>
+        /// 
+        /// </summary>
         public bool BreakerOpen => summarizer.BreakerOpen;
+        /// <summary>
+        /// 
+        /// </summary>
         public int BreakerFailures => summarizer.BreakerFailures;
 
         /// <summary>
@@ -106,7 +148,7 @@ namespace ParrotAgent.Kernel
         /// 3. 熔断器 open → 跳过
         /// 4. token > 触发阈值 → 触发摘要
         /// </summary>
-        public async Task<Compression> CheckCompressable(Conversation conversation, CancellationToken cancellationToken)
+        public async Task<Compression> CheckCompressable(IConversation conversation, CancellationToken cancellationToken)
         {
             // enable_auto_compress: false → 跳过
             if (!enableAutoCompress)
@@ -147,9 +189,9 @@ namespace ParrotAgent.Kernel
         /// 3. 熔断器 open → 跳过
         /// 4. token > 触发阈值 → 触发摘要
         /// </summary>
-        public async Task<CompressionResult> Compress(Conversation conversation, CancellationToken cancellationToken)
+        public async Task<CompressionResult> Compress(IConversation conversation, CancellationToken cancellationToken)
         {
-            var summary = await summarizer.Summarize(conversation, cancellationToken);
+            var summary = await summarizer.Summarize(conversation as Conversation, cancellationToken);
             if (!summary.Success)
             {
                 var result = new CompressionResult() { WasCompressed = false };

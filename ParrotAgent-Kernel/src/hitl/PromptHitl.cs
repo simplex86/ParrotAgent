@@ -11,21 +11,20 @@ namespace ParrotAgent.Kernel
         /// <summary>
         /// 
         /// </summary>
-        private EventSink eventSink;
+        private EventDispatcher eventDispatcher;
 
         /// <summary>
         /// 
         /// </summary>
-        /// <param name="eventSink"></param>
-        public PromptHitl(EventSink eventSink)
+        /// <param name="eventDispatcher"></param>
+        public PromptHitl(EventDispatcher eventDispatcher)
         {
-            this.eventSink = eventSink;
+            this.eventDispatcher = eventDispatcher;
         }
 
         /// <summary>
         /// 
         /// </summary>
-        /// <param name="eventSink"></param>
         /// <param name="toolcall"></param>
         /// <param name="cancellationToken"></param>
         /// <returns></returns>
@@ -37,8 +36,7 @@ namespace ParrotAgent.Kernel
             }
 
             var taskCompletionSource = new TaskCompletionSource<HitlOption>();
-            eventSink.Broadcast(new HitlEvent() 
-            {
+            await eventDispatcher.Dispatch(new HitlEvent() {
                 Call = toolcall,
                 TaskCompletionSource = taskCompletionSource 
             });

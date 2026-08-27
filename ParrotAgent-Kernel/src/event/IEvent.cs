@@ -105,4 +105,12 @@ namespace ParrotAgent.Kernel
         public int MessagesCompressed;
         public int TokensSaved;
     }
+
+    /// <summary>
+    /// 
+    /// </summary>
+    public struct CommandResultEvent : IEvent
+    {
+        public CommandResult Result;
+    }
 }

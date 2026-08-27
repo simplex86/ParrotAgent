@@ -8,16 +8,17 @@ namespace ParrotAgent.NUI
     /// 
     /// </summary>
     [EventHandler]
-    public class AgentEndHandler : AEventHandler<AgentEndEvent>
+    public class CommandResultHandler : AEventHandler<CommandResultEvent>
     {
         /// <summary>
         /// 
         /// </summary>
         /// <param name="evt"></param>
         /// <returns></returns>
-        protected override async Task Process(AgentEndEvent evt)
+        protected override async Task Process(CommandResultEvent evt)
         {
-            await AppContext.CancellationTokenSource.CancelAsync();
+            Console.WriteLine(evt.Result.Output);
+            await Task.CompletedTask;
         }
     }
 }

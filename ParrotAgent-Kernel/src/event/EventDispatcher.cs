@@ -1,12 +1,13 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Threading.Tasks;
 
 namespace ParrotAgent.Kernel
 {
     /// <summary>
     /// 
     /// </summary>
-    internal class EventSink
+    internal class EventDispatcher
     {
         /// <summary>
         /// 
@@ -39,13 +40,13 @@ namespace ParrotAgent.Kernel
         /// </summary>
         /// <typeparam name="T"></typeparam>
         /// <param name="evt"></param>
-        public void Broadcast<T>(T evt) where T : struct, IEvent
+        public async Task Dispatch<T>(T evt) where T : struct, IEvent
         {
             if (listener.TryGetValue(typeof(T), out var handlers))
             {
                 foreach (var handler in handlers)
                 {
-                    handler.Run(evt);
+                    await handler.Run(evt);
                 }
             }
         }

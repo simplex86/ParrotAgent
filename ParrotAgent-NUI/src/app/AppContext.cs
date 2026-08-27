@@ -1,13 +1,12 @@
 ﻿using System;
 using System.Threading;
-using System.Threading.Tasks;
 
 namespace ParrotAgent.NUI
 {
     /// <summary>
     /// 
     /// </summary>
-    internal static class AppData
+    internal static class AppContext
     {
         /// <summary>
         /// 

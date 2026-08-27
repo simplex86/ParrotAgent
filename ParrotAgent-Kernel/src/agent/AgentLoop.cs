@@ -20,7 +20,7 @@ namespace ParrotAgent.Kernel
         /// <summary>
         /// 
         /// </summary>
-        private EventSink eventSink;
+        private EventDispatcher eventDispatcher;
         /// <summary>
         /// 
         /// </summary>
@@ -38,15 +38,18 @@ namespace ParrotAgent.Kernel
         /// 
         /// </summary>
         /// <param name="provider"></param>
-        /// <param name="eventSink"></param>
-        /// <param name="cancellationToken"></param>
-        public AgentLoop(IProtocolProvider provider, ToolRegistry toolRegistry, BatchToolExecutor toolExecutor, EventSink eventSink, Compressor compressor)
+        /// <param name="toolRegistry"></param>
+        /// <param name="eventDispatcher"></param>
+        /// <param name="compressor"></param>
+        public AgentLoop(IProtocolProvider provider, ToolRegistry toolRegistry, EventDispatcher eventDispatcher, Compressor compressor)
         {
             this.provider = provider;
             this.toolRegistry = toolRegistry;
-            this.toolExecutor = toolExecutor;
-            this.eventSink = eventSink;
+            this.eventDispatcher = eventDispatcher;
             this.compressor = compressor;
+
+            var hitl = new PromptHitl(eventDispatcher);
+            this.toolExecutor = new BatchToolExecutor(toolRegistry, hitl);
         }
 
         /// <summary>
@@ -77,13 +80,12 @@ namespace ParrotAgent.Kernel
                             case Compression.None: 
                                 break;
                             case Compression.Warning(var message, var breakerOpen):
-                                eventSink.Broadcast(new ContextWarningEvent() { Message = message });
+                                await eventDispatcher.Dispatch(new ContextWarningEvent() { Message = message });
                                 break;
                             case Compression.Compress:
-                                eventSink.Broadcast(new ContextCompressingEvent());
+                                await eventDispatcher.Dispatch(new ContextCompressingEvent());
                                 var result = await compressor.Compress(conversation, cancellationToken);
-                                eventSink.Broadcast(new ContextCompressedEvent()
-                                {
+                                await eventDispatcher.Dispatch(new ContextCompressedEvent() {
                                     WasCompressed = result.WasCompressed,
                                     MessagesCompressed = result.MessagesCompressed,
                                     TokensSaved = result.EstimatedTokensSaved
@@ -104,7 +106,7 @@ namespace ParrotAgent.Kernel
                         {
                             case Chunk.TextDelta(var delta):
                                 reply.Append(delta);
-                                eventSink.Broadcast(new AssistantDeltaEvent() { Delta = delta });
+                                await eventDispatcher.Dispatch(new AssistantDeltaEvent() { Delta = delta });
                                 break;
                             case Chunk.ToolCalls(var toolcalls):
                                 functions = toolcalls;
@@ -147,8 +149,7 @@ namespace ParrotAgent.Kernel
             }
             finally
             {
-                eventSink.Broadcast(new AssistantCompletedEvent()
-                { 
+                await eventDispatcher.Dispatch(new AssistantCompletedEvent() { 
                     PromptTokens = uPromptTokens, 
                     TotalTokens = uTotalTokens 
                 });
@@ -165,7 +166,7 @@ namespace ParrotAgent.Kernel
         {
             foreach (var call in toolcalls)
             {
-                eventSink.Broadcast(new ToolCallEvent() { Call = call });
+                await eventDispatcher.Dispatch(new ToolCallEvent() { Call = call });
             }
 
             var results = await toolExecutor.Execute(toolcalls, cancellationToken);
@@ -194,8 +195,7 @@ namespace ParrotAgent.Kernel
                 var content = result.Success ? truncatedContents[i] : $"错误：{result.Error}";
                 conversation.AddTool(content, call.Id);
 
-                eventSink.Broadcast(new ToolResultEvent()
-                {
+                await eventDispatcher.Dispatch(new ToolResultEvent() {
                     Call = call,
                     Result = result,
                 });

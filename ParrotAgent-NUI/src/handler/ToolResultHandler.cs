@@ -20,12 +20,12 @@ namespace ParrotAgent.NUI
             if (evt.Result.Success)
             {
                 Console.ForegroundColor = ConsoleColor.Green;
-                Console.WriteLine($"Invoke Function = {evt.Call.Name}, Arguments = {evt.Call.Args}, Result = {evt.Result.Content}");
+                Console.WriteLine($"Invoke Function = {evt.Call.Name}, Arguments = {evt.Call.Args}, Result = {(evt.Result.Content.Length < 30 ? evt.Result.Content : evt.Result.Content[..30] + "...")}");
             }
             else
             {
                 Console.ForegroundColor = ConsoleColor.Red;
-                Console.WriteLine($"Invoke Function = {evt.Call.Name}, Arguments = {evt.Call.Args}, Result = {evt.Result.Error}");
+                Console.WriteLine($"Invoke Function = {evt.Call.Name}, Arguments = {evt.Call.Args}, Error = {evt.Result.Error}");
             }
             Console.ResetColor();
 

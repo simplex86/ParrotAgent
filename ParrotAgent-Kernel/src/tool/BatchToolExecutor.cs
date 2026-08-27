@@ -30,10 +30,10 @@ namespace ParrotAgent.Kernel
         /// <param name="executor"></param>
         /// <param name="hitl"></param>
         /// <exception cref="ArgumentNullException"></exception>
-        public BatchToolExecutor(ToolRegistry registry, ToolExecutor executor, IHitl hitl)
+        public BatchToolExecutor(ToolRegistry registry, IHitl hitl)
         {
             this.registry = registry ?? throw new ArgumentNullException(nameof(registry));
-            this.executor = executor ?? throw new ArgumentNullException(nameof(executor));
+            this.executor = new ToolExecutor(registry);
             this.hitl = hitl ?? throw new ArgumentNullException(nameof(hitl));
         }
 

@@ -1,3 +1,4 @@
 ParrotAgent-OpenAI.dll
-ParrotAgent-Tool.dll
 ParrotAgent-NUI.dll
+ParrotAgent-Tool.dll
+ParrotAgent-Command.dll

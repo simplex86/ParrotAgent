@@ -35,14 +35,16 @@ namespace ParrotAgent.Kernel
                 var toolRegistry = new ToolRegistry();
                 toolRegistry.Collect();
 
-                var eventSink = new EventSink();
-                eventSink.Collect();
+                var commandRegistry = new CommandRegistry();
+                commandRegistry.Collect();
+
+                var eventDispatcher = new EventDispatcher();
+                eventDispatcher.Collect();
 
                 var config = AgentConfigLoader.Load();
                 {
                     var providerConfig = config.Providers.FirstOrDefault(p => p.Name == config.ActiveProvider);
-                    eventSink.Broadcast(new AgentBeginEvent()
-                    {
+                    await eventDispatcher.Dispatch(new AgentBeginEvent() {
                         Provider = providerConfig.Name,
                         Protocol = providerConfig.Protocol,
                         ContextWindowTokens = config.Context.ContextWindowTokens,
@@ -71,7 +73,7 @@ namespace ParrotAgent.Kernel
                                                 contextConfig.MaxCircuitFailures ?? 2, 
                                                 contextConfig.EnableAutoCompress ?? true);
 
-                var agent = new Agent(provider, toolRegistry, eventSink, compressor, cancellationToken);
+                var agent = new Agent(provider, toolRegistry, commandRegistry, eventDispatcher, compressor, cancellationToken);
                 await agent.Run();
             }
             catch (Exception ex)
