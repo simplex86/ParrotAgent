@@ -49,7 +49,7 @@ namespace ParrotAgent.Kernel
                      ToolRegistry toolRegistry, 
                      CommandRegistry commandRegistry, 
                      EventDispatcher eventDispatcher, 
-                     Compressor compressor, 
+                     Compressor compressor,
                      CancellationToken cancellationToken)
         {
             this.compressor = compressor;

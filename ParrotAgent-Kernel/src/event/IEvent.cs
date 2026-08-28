@@ -18,7 +18,6 @@ namespace ParrotAgent.Kernel
         public string Provider;
         public string Protocol;
         public int? ContextWindowTokens;
-        public int ToolCount;
     }
 
     /// <summary>
@@ -27,6 +26,33 @@ namespace ParrotAgent.Kernel
     public struct AgentEndEvent : IEvent 
     {
 
+    }
+
+    /// <summary>
+    /// 
+    /// </summary>
+    public struct McpServerBeginEvent : IEvent
+    {
+        public int TotalCount;
+    }
+
+    /// <summary>
+    /// 
+    /// </summary>
+    public struct McpServerResultEvent : IEvent
+    {
+        public string Name;
+        public bool Success;
+        public int ToolCount;
+    }
+
+    /// <summary>
+    /// 
+    /// </summary>
+    public struct McpServerEndEvent : IEvent
+    {
+        public int TotalCount;
+        public int ConnectedCount;
     }
 
     /// <summary>

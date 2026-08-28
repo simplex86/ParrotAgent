@@ -1,10 +1,7 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.Net.Http;
 using System.Net.Http.Headers;
-using System.Net.ServerSentEvents;
 using System.Text;
-using System.Text.Json;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -52,7 +49,7 @@ namespace ParrotAgent.Kernel
         public async Task<HttpResponseMessage> Send(string text, string requestUri, CancellationToken cancellationToken)
         {
             cancellationToken.ThrowIfCancellationRequested();
-            return await RequestAsync(text, requestUri, cancellationToken);
+            return await Post(text, requestUri, cancellationToken);
         }
 
         /// <summary>
@@ -62,7 +59,7 @@ namespace ParrotAgent.Kernel
         /// <param name="requestUri"></param>
         /// <param name="cancellationToken"></param>
         /// <returns></returns>
-        private async Task<HttpResponseMessage> RequestAsync(string text, string requestUri, CancellationToken cancellationToken)
+        private async Task<HttpResponseMessage> Post(string text, string requestUri, CancellationToken cancellationToken)
         {
             using var request = new HttpRequestMessage(HttpMethod.Post, requestUri)
             {

@@ -25,6 +25,11 @@ namespace ParrotAgent.Kernel
         /// null 时用默认值
         /// </summary>
         public ContextConfig? Context { get; init; }
+        /// <summary>
+        /// MCP 客户端配置
+        /// null 时用默认值
+        /// </summary>
+        public McpConfig? Mcp { get; init; }
     }
 
     /// <summary>

@@ -43,3 +43,22 @@ context:
   keep_recent_messages: 4         # 摘要时保留的最近消息数
   max_circuit_failures: 2         # 熔断器最大连续失败次数
   enable_auto_compress: true      # 是否启用自动压缩（false 时仅截断不摘要）
+
+# MCP 客户端配置
+mcp:
+  enable: true
+  servers:
+    # Stdio MCP server 示例：filesystem 服务器
+    - name: filesystem
+      transport: stdio
+      command: npx
+      args: "-y @modelcontextprotocol/server-filesystem /tmp"
+      # working_dir: /optional/working/directory
+      # env:
+      #   NODE_OPTIONS: "--max-old-space-size=4096"
+
+    # HTTP MCP server 示例
+    # - name: remote-tools
+    #   transport: http
+    #   url: https://mcp.example.com/mcp
+    #   api_key: ${MCP_API_KEY}

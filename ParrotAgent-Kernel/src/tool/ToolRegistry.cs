@@ -8,7 +8,7 @@ namespace ParrotAgent.Kernel
     /// 工具注册中心：按名查找 + 批量 schema 转换。
     /// AgentLoop在调用 LLM 前注入 ToolRegistry.ToOpenAISchemas()，让 LLM 知道有哪些工具可用。
     /// </summary>
-    public sealed class ToolRegistry
+    internal sealed class ToolRegistry
     {
         /// <summary>
         /// 
@@ -36,7 +36,7 @@ namespace ParrotAgent.Kernel
         /// <summary>
         /// 注册工具。重名抛 ArgumentException（工具名应跨工具唯一）。
         /// </summary>
-        private void Register(ITool tool)
+        public void Register(ITool tool)
         {
             ArgumentNullException.ThrowIfNull(tool);
             if (string.IsNullOrWhiteSpace(tool.Name))

@@ -8,17 +8,17 @@ namespace ParrotAgent.NUI
     /// 
     /// </summary>
     [EventHandler]
-    public class AgentBeignHandler : AEventHandler<AgentBeginEvent>
+    public class McpServerBeginHandler : AEventHandler<McpServerBeginEvent>
     {
         /// <summary>
         /// 
         /// </summary>
         /// <param name="evt"></param>
         /// <returns></returns>
-        protected override async Task Process(AgentBeginEvent evt)
+        protected override async Task Process(McpServerBeginEvent evt)
         {
             Console.ForegroundColor = ConsoleColor.DarkGray;
-            Console.WriteLine($"Provider = {evt.Provider}, Protocol = {evt.Protocol}, ContextWindowSize = {evt.ContextWindowTokens}");
+            Console.WriteLine($"Begin to connect {evt.TotalCount} MCP Servers ...");
             Console.ResetColor();
 
             await Task.CompletedTask;
