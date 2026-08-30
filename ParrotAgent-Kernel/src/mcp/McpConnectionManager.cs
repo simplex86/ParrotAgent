@@ -9,7 +9,6 @@ namespace ParrotAgent.Kernel
 {
     /// <summary>
     /// MCP 连接管理器：并行连接所有配置的 MCP server，管理生命周期
-    /// 单个 server 连接失败不阻塞其他——记日志，跳过该 server
     ///
     /// 职责：
     /// 1. 启动时并行连接所有 server（Task.WhenAll）
@@ -112,7 +111,7 @@ namespace ParrotAgent.Kernel
             }
             catch (Exception ex)
             {
-                Trace.TraceError($"MCP Server [{config.Name}] 连接失败，跳过: {ex}");
+                Trace.TraceError($"MCP Server [{config.Name}] 连接失败: {ex}");
                 await eventDispatcher.Dispatch(new McpServerResultEvent() { Name = config.Name, Success = false });
             }
         }

@@ -18,6 +18,7 @@ namespace ParrotAgent.App
             try
             {
                 Console.Clear();
+                Console.Title = "Parrot Agent v0.7.25";
 
                 var pluginLoader = new PluginLoader();
                 if (!pluginLoader.Load()) return;

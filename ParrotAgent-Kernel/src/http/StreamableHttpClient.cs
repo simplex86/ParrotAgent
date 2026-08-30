@@ -1,6 +1,9 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Net.Http;
 using System.Net.Http.Headers;
+using System.Net.ServerSentEvents;
+using System.Runtime.CompilerServices;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
@@ -43,25 +46,46 @@ namespace ParrotAgent.Kernel
         /// 
         /// </summary>
         /// <param name="text"></param>
-        /// <param name="requestUri"></param>
+        /// <param name="uri"></param>
         /// <param name="cancellationToken"></param>
         /// <returns></returns>
-        public async Task<HttpResponseMessage> Send(string text, string requestUri, CancellationToken cancellationToken)
+        public async Task<HttpResponseMessage> Post(string text, string uri, CancellationToken cancellationToken)
         {
             cancellationToken.ThrowIfCancellationRequested();
-            return await Post(text, requestUri, cancellationToken);
+            return await Request(text, uri, HttpMethod.Post, cancellationToken);
         }
 
         /// <summary>
         /// 
         /// </summary>
         /// <param name="text"></param>
-        /// <param name="requestUri"></param>
+        /// <param name="uri"></param>
         /// <param name="cancellationToken"></param>
         /// <returns></returns>
-        private async Task<HttpResponseMessage> Post(string text, string requestUri, CancellationToken cancellationToken)
+        public async IAsyncEnumerable<string> PostStream(string text, string uri, [EnumeratorCancellation] CancellationToken cancellationToken)
         {
-            using var request = new HttpRequestMessage(HttpMethod.Post, requestUri)
+            cancellationToken.ThrowIfCancellationRequested();
+            var response = await Request(text, uri, HttpMethod.Post, cancellationToken);
+
+            using var stream = await response.Content.ReadAsStreamAsync(cancellationToken);
+            var parser = SseParser.Create(stream);
+
+            await foreach (var sse in parser.EnumerateAsync(cancellationToken))
+            {
+                yield return sse.Data;
+            }
+        }
+
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="text"></param>
+        /// <param name="uri"></param>
+        /// <param name="cancellationToken"></param>
+        /// <returns></returns>
+        private async Task<HttpResponseMessage> Request(string text, string uri, HttpMethod method, CancellationToken cancellationToken)
+        {
+            using var request = new HttpRequestMessage(method, uri)
             {
                 Content = new StringContent(text, Encoding.UTF8, "application/json")
             };

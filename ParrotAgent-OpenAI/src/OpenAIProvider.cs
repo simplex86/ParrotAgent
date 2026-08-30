@@ -1,18 +1,18 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Threading;
-using System.Threading.Tasks;
 using System.Net.Http.Headers;
-using System.Net.ServerSentEvents;
 using System.Runtime.CompilerServices;
 using System.Text.Json;
 using System.Text.Json.Nodes;
+using System.Threading;
+using System.Threading.Tasks;
 using ParrotAgent.Kernel;
 
 namespace ParrotAgent.Protocol
 {
     using OpenAI;
+    using YamlDotNet.Core;
 
     /// <summary>
     /// OpenAI 兼容协议 Provider。
@@ -59,7 +59,7 @@ namespace ParrotAgent.Protocol
             try
             {
                 var request = BuildRequestBody(messages, tools, false);
-                using var response = await http.Send(request, "chat/completions", cancellationToken);
+                using var response = await http.Post(request, "chat/completions", cancellationToken);
 
                 var content = await response.Content.ReadAsStringAsync(cancellationToken);
                 using var doc = JsonDocument.Parse(content);
@@ -93,14 +93,8 @@ namespace ParrotAgent.Protocol
             var accumulator = new ToolCallAccumulator();
 
             var request = BuildRequestBody(messages, tools, true);
-            using var response = await http.Send(request, "chat/completions", cancellationToken);
-
-            using var stream = await response.Content.ReadAsStreamAsync(cancellationToken);
-            var parser = SseParser.Create(stream);
-
-            await foreach (var sse in parser.EnumerateAsync(cancellationToken))
+            await foreach (var data in http.PostStream(request, "chat/completions", cancellationToken))
             {
-                var data = sse.Data;
                 if (data == "[DONE]")
                 {
                     yield return new Chunk.Done("done");

@@ -25,7 +25,7 @@ namespace ParrotAgent.NUI
             else
             {
                 Console.ForegroundColor = ConsoleColor.Red;
-                Console.WriteLine($"Connect to [{evt.Name}] MCP server failed");
+                Console.WriteLine($"Failed to connect [{evt.Name}] MCP server");
             }
             Console.ResetColor();
 
